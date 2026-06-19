@@ -27,7 +27,12 @@
 		initialPeriod ? dateToCustomInput(initialPeriod.end, initialConfig) : defaultDate
 	);
 	let label = $state(initialPeriod?.label ?? '');
-	let color = $state(initialPeriod?.color ?? '#6366f1');
+	function randomColor(): string {
+		const colors = ['#3b82f6','#ef4444','#10b981','#8b5cf6','#f59e0b','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48','#0ea5e9','#a855f7','#d946ef'];
+		return colors[Math.floor(Math.random() * colors.length)];
+	}
+
+	let color = $state(initialPeriod?.color ?? randomColor());
 
 	let realStartPreview = $derived(() => {
 		const parsed = parseCustomDateString(startInput, initialConfig);

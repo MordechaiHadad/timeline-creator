@@ -19,11 +19,15 @@
 	} = $props();
 
 	const VIEWBOX_WIDTH = 1200;
-	const VIEWBOX_HEIGHT = 400;
-	const MARGIN = { top: 60, right: 40, bottom: 40, left: 40 };
-	const PERIOD_HEIGHT = 40;
-	const PERIOD_Y = 80;
-	const EVENT_Y = 200;
+	const VIEWBOX_BASE_HEIGHT = 400;
+	const MARGIN = { top: 10, right: 40, bottom: 40, left: 40 };
+	const PERIOD_HEIGHT = 25;
+	const PERIOD_Y = 5;
+	const AXIS_Y = 40;
+	const EVENT_Y = 65;
+	const STAGGER = 28;
+	const MAX_VIEWBOX_WIDTH = 2000;
+	const MAX_VIEWBOX_HEIGHT = 600;
 
 	let svgEl: SVGSVGElement;
 	let containerEl: HTMLDivElement;
@@ -53,15 +57,82 @@
 	}
 
 	function render() {
-		if (!svgEl) return;
+		if (!svgEl || !containerEl) return;
+
+		const [domainStart, domainEnd] = getExtent();
+		const domainWidth = domainEnd.getTime() - domainStart.getTime();
+		const baseInnerWidth = VIEWBOX_WIDTH - MARGIN.left - MARGIN.right;
+
+		const sorted = [...data.events].sort((a, b) => a.date.getTime() - b.date.getTime());
+		let scaleFactor = 1;
+		for (let i = 0; i < sorted.length - 1; i++) {
+			const e1 = sorted[i];
+			const e2 = sorted[i + 1];
+			const dateGap = e2.date.getTime() - e1.date.getTime();
+			if (dateGap <= 0) continue;
+			const y1 = String(Math.round(realToCustom(e1.date, timeConfig)));
+			const y2 = String(Math.round(realToCustom(e2.date, timeConfig)));
+			const w1 = Math.max(e1.label.length * 7, y1.length * 6);
+			const w2 = Math.max(e2.label.length * 7, y2.length * 6);
+			const needed = (w1 + w2) / 2 + 8;
+			const current = baseInnerWidth * dateGap / domainWidth;
+			if (current < needed) {
+				scaleFactor = Math.max(scaleFactor, needed / current);
+			}
+		}
+
+		const cappedFactor = Math.min(scaleFactor, MAX_VIEWBOX_WIDTH / VIEWBOX_WIDTH);
+		const innerWidth = baseInnerWidth * cappedFactor;
+		const viewBoxWidth = Math.round(VIEWBOX_WIDTH + (innerWidth - baseInnerWidth));
+
+		const xScale = d3.scaleTime().domain([domainStart, domainEnd]).range([0, innerWidth]);
+
+		const eventSlots = data.events.map((event) => {
+			const x = xScale(event.date);
+			const customYear = Math.round(realToCustom(event.date, timeConfig));
+			const yearText = String(customYear);
+			return { event, x, maxWidth: Math.max(event.label.length * 8, yearText.length * 7), yearText };
+		});
+
+		eventSlots.sort((a, b) => a.x - b.x);
+
+		const labelOffsets: number[] = new Array(eventSlots.length).fill(0);
+
+		let clusterStart = 0;
+		while (clusterStart < eventSlots.length) {
+			let clusterEnd = clusterStart + 1;
+			while (clusterEnd < eventSlots.length) {
+				const prev = eventSlots[clusterEnd - 1];
+				const curr = eventSlots[clusterEnd];
+				if (curr.x - prev.x < (prev.maxWidth + curr.maxWidth) / 2 + 8) {
+					clusterEnd++;
+				} else {
+					break;
+				}
+			}
+			if (clusterEnd - clusterStart >= 2) {
+				for (let k = clusterStart; k < clusterEnd; k++) {
+					labelOffsets[k] = (k - clusterStart) * STAGGER;
+				}
+			}
+			clusterStart = clusterEnd;
+		}
+
+		const maxOffset = Math.max(...labelOffsets);
+		const viewBoxHeight = Math.min(
+			Math.max(VIEWBOX_BASE_HEIGHT, EVENT_Y + 55 + maxOffset + MARGIN.bottom + 10),
+			MAX_VIEWBOX_HEIGHT
+		);
 
 		const svg = d3.select(svgEl);
 		svg.selectAll('*').remove();
+		svg.attr('viewBox', `0 0 ${viewBoxWidth} ${viewBoxHeight}`);
 
-		const [domainStart, domainEnd] = getExtent();
-		const innerWidth = VIEWBOX_WIDTH - MARGIN.left - MARGIN.right;
-
-		const xScale = d3.scaleTime().domain([domainStart, domainEnd]).range([0, innerWidth]);
+		if (viewBoxWidth > VIEWBOX_WIDTH && height > 0) {
+			svgEl.style.width = `${height * (viewBoxWidth / viewBoxHeight)}px`;
+		} else {
+			svgEl.style.width = '';
+		}
 
 		const g = svg.append('g').attr('class', 'timeline-content');
 
@@ -91,19 +162,21 @@
 				const svgNode = svgEl;
 				const clone = svgNode.cloneNode(true) as SVGSVGElement;
 				clone.removeAttribute('class');
-				clone.setAttribute('width', String(VIEWBOX_WIDTH * 3));
-				clone.setAttribute('height', String(VIEWBOX_HEIGHT * 3));
-
+				const vb = clone.getAttribute('viewBox');
+				const parts = vb?.split(' ') || ['0', '0', '1200', '400'];
+				const w = parseInt(parts[2]) || VIEWBOX_WIDTH;
+				const h = parseInt(parts[3]) || viewBoxHeight;
+				clone.setAttribute('width', String(w * 3));
+				clone.setAttribute('height', String(h * 3));
 				const serializer = new XMLSerializer();
 				const svgString = serializer.serializeToString(clone);
 				const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
 				const url = URL.createObjectURL(svgBlob);
-
 				const img = new Image();
 				img.onload = () => {
 					const canvas = document.createElement('canvas');
-					canvas.width = VIEWBOX_WIDTH * 3;
-					canvas.height = VIEWBOX_HEIGHT * 3;
+					canvas.width = w * 3;
+					canvas.height = h * 3;
 					const ctx = canvas.getContext('2d')!;
 					ctx.fillStyle = '#ffffff';
 					ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -121,22 +194,6 @@
 				img.src = url;
 			}
 		};
-
-		const axisGroup = g
-			.append('g')
-			.attr('class', 'axis')
-			.attr('transform', `translate(${MARGIN.left},${VIEWBOX_HEIGHT - MARGIN.bottom})`);
-
-		const axis = d3
-			.axisBottom(xScale)
-			.ticks(10)
-			.tickSize(-VIEWBOX_HEIGHT + MARGIN.top + MARGIN.bottom)
-			.tickFormat((d) => formatAxisTick(d as Date));
-
-		axisGroup.call(axis);
-		axisGroup.select('.domain').remove();
-		axisGroup.selectAll('.tick line').attr('stroke', '#e5e7eb').attr('stroke-dasharray', '2,2');
-		axisGroup.selectAll('.tick text').attr('fill', '#6b7280').attr('font-size', '12px');
 
 		const periodGroup = g.append('g').attr('class', 'periods');
 
@@ -177,10 +234,30 @@
 			}
 		});
 
+		const axisGroup = g
+			.append('g')
+			.attr('class', 'axis')
+			.attr('transform', `translate(${MARGIN.left},${AXIS_Y})`);
+
+		const axis = d3
+			.axisBottom(xScale)
+			.ticks(10)
+			.tickSize(6)
+			.tickFormat((d) => formatAxisTick(d as Date));
+
+		axisGroup.call(axis);
+		axisGroup.select('.domain').attr('stroke', '#9ca3af').attr('stroke-width', 1);
+		axisGroup.selectAll('.tick line').attr('stroke', '#9ca3af');
+		axisGroup.selectAll('.tick text')
+			.attr('fill', '#374151')
+			.attr('font-size', '11px')
+			.attr('font-weight', '700')
+			.attr('dy', '0.25em');
+
 		const eventGroup = g.append('g').attr('class', 'events');
 
-		data.events.forEach((event) => {
-			const x = xScale(event.date);
+		eventSlots.forEach(({ event, x, maxWidth, yearText }, idx) => {
+			const offset = labelOffsets[idx];
 			const eg = eventGroup
 				.append('g')
 				.attr('class', 'event')
@@ -189,9 +266,9 @@
 
 			eg.append('line')
 				.attr('x1', MARGIN.left + x)
-				.attr('y1', PERIOD_Y + PERIOD_HEIGHT + 10)
+				.attr('y1', AXIS_Y + 6)
 				.attr('x2', MARGIN.left + x)
-				.attr('y2', EVENT_Y - 10)
+				.attr('y2', EVENT_Y)
 				.attr('stroke', event.color)
 				.attr('stroke-width', 1.5)
 				.attr('stroke-dasharray', '4,4');
@@ -199,38 +276,40 @@
 			eg.append('circle')
 				.attr('cx', MARGIN.left + x)
 				.attr('cy', EVENT_Y)
-				.attr('r', 8)
+				.attr('r', 6)
 				.attr('fill', event.color)
 				.attr('stroke', '#fff')
 				.attr('stroke-width', 2);
 
+			const bgWidth = maxWidth + 20;
+			eg.append('rect')
+				.attr('x', MARGIN.left + x - bgWidth / 2)
+				.attr('y', EVENT_Y + 6 + offset)
+				.attr('width', bgWidth)
+				.attr('height', 35)
+				.attr('rx', 3)
+				.attr('fill', event.color)
+				.attr('opacity', 0.08);
+
 			eg.append('text')
 				.attr('x', MARGIN.left + x)
-				.attr('y', EVENT_Y + 24)
+				.attr('y', EVENT_Y + 20 + offset)
 				.attr('text-anchor', 'middle')
 				.attr('fill', '#374151')
 				.attr('font-size', '12px')
 				.attr('font-weight', '600')
 				.text(event.label);
 
-			const customYear = Math.round(realToCustom(event.date, timeConfig));
 			eg.append('text')
 				.attr('x', MARGIN.left + x)
-				.attr('y', EVENT_Y + 40)
+				.attr('y', EVENT_Y + 36 + offset)
 				.attr('text-anchor', 'middle')
 				.attr('fill', '#9ca3af')
 				.attr('font-size', '10px')
-				.text(String(customYear));
+				.text(yearText);
 		});
 
-		const baselineY = EVENT_Y + 55;
-		g.append('line')
-			.attr('x1', MARGIN.left)
-			.attr('y1', baselineY)
-			.attr('x2', MARGIN.left + innerWidth)
-			.attr('y2', baselineY)
-			.attr('stroke', '#d1d5db')
-			.attr('stroke-width', 2);
+
 	}
 
 	let currentZoom: d3.ZoomBehavior<SVGSVGElement, unknown> | null = null;
@@ -257,16 +336,32 @@
 		timeConfig.scale;
 		render();
 	});
+
+	$effect(() => {
+		width;
+		height;
+		if (!svgEl) return;
+		const vb = svgEl.getAttribute('viewBox');
+		if (!vb) return;
+		const parts = vb.split(' ');
+		const vbw = parseInt(parts[2]) || VIEWBOX_WIDTH;
+		if (vbw > VIEWBOX_WIDTH && height > 0) {
+			const vbh = parseInt(parts[3]) || VIEWBOX_BASE_HEIGHT;
+			svgEl.style.width = `${height * (vbw / vbh)}px`;
+		} else {
+			svgEl.style.width = '';
+		}
+	});
 </script>
 
 <div
 	bind:this={containerEl}
-	class="h-full w-full overflow-hidden rounded-xl border border-gray-200 bg-white"
+	class="h-full w-full overflow-x-auto overflow-y-hidden rounded-xl border border-gray-200 bg-white"
 >
 	<svg
 		bind:this={svgEl}
-		viewBox="0 0 {VIEWBOX_WIDTH} {VIEWBOX_HEIGHT}"
+		viewBox="0 0 {VIEWBOX_WIDTH} {VIEWBOX_BASE_HEIGHT}"
 		class="h-full w-full"
-		preserveAspectRatio="xMidYMid meet"
+		preserveAspectRatio="xMinYMid slice"
 	></svg>
 </div>
