@@ -158,41 +158,46 @@
 			reset: () => {
 				svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
 			},
-			exportPng: () => {
-				const svgNode = svgEl;
-				const clone = svgNode.cloneNode(true) as SVGSVGElement;
-				clone.removeAttribute('class');
-				const vb = clone.getAttribute('viewBox');
-				const parts = vb?.split(' ') || ['0', '0', '1200', '400'];
-				const w = parseInt(parts[2]) || VIEWBOX_WIDTH;
-				const h = parseInt(parts[3]) || viewBoxHeight;
-				clone.setAttribute('width', String(w * 3));
-				clone.setAttribute('height', String(h * 3));
-				const serializer = new XMLSerializer();
-				const svgString = serializer.serializeToString(clone);
-				const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-				const url = URL.createObjectURL(svgBlob);
-				const img = new Image();
-				img.onload = () => {
-					const canvas = document.createElement('canvas');
-					canvas.width = w * 3;
-					canvas.height = h * 3;
-					const ctx = canvas.getContext('2d')!;
-					ctx.fillStyle = '#ffffff';
-					ctx.fillRect(0, 0, canvas.width, canvas.height);
-					ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-					URL.revokeObjectURL(url);
-					canvas.toBlob((blob) => {
-						if (!blob) return;
-						const a = document.createElement('a');
-						a.href = URL.createObjectURL(blob);
-						a.download = `${data.title.replace(/[^a-zA-Z0-9]/g, '_') || 'timeline'}.png`;
-						a.click();
-						URL.revokeObjectURL(a.href);
-					}, 'image/png');
-				};
-				img.src = url;
+		exportPng: () => {
+			const svgNode = svgEl;
+			const clone = svgNode.cloneNode(true) as SVGSVGElement;
+			clone.removeAttribute('class');
+			const contentGroup = clone.querySelector('.timeline-content');
+			if (contentGroup) {
+				contentGroup.removeAttribute('transform');
 			}
+			const vb = clone.getAttribute('viewBox');
+			const parts = vb?.split(' ') || ['0', '0', '1200', '400'];
+			const w = parseInt(parts[2]) || VIEWBOX_WIDTH;
+			const h = parseInt(parts[3]) || viewBoxHeight;
+			const scale = Math.max(3, Math.ceil(8000 / Math.max(w, h)));
+			clone.setAttribute('width', String(w * scale));
+			clone.setAttribute('height', String(h * scale));
+			const serializer = new XMLSerializer();
+			const svgString = serializer.serializeToString(clone);
+			const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+			const url = URL.createObjectURL(svgBlob);
+			const img = new Image();
+			img.onload = () => {
+				const canvas = document.createElement('canvas');
+				canvas.width = w * scale;
+				canvas.height = h * scale;
+				const ctx = canvas.getContext('2d')!;
+				ctx.fillStyle = '#ffffff';
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+				URL.revokeObjectURL(url);
+				canvas.toBlob((blob) => {
+					if (!blob) return;
+					const a = document.createElement('a');
+					a.href = URL.createObjectURL(blob);
+					a.download = `${data.title.replace(/[^a-zA-Z0-9]/g, '_') || 'timeline'}.png`;
+					a.click();
+					URL.revokeObjectURL(a.href);
+				}, 'image/png');
+			};
+			img.src = url;
+		}
 		};
 
 		const periodGroup = g.append('g').attr('class', 'periods');
