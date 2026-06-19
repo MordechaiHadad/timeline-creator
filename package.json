@@ -15,6 +15,7 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^1.21.0",
+		"@sveltejs/adapter-static": "^3.0.10",
 		"@types/d3": "^7.4.3",
 		"d3": "^7.9.0"
 	},

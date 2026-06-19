@@ -5,6 +5,7 @@
     "npm:@eslint/js@^10.0.1": "10.0.1_eslint@10.4.0",
     "npm:@lucide/svelte@^1.21.0": "1.21.0_svelte@5.55.9",
     "npm:@sveltejs/adapter-auto@^7.0.1": "7.0.1_@sveltejs+kit@2.60.1__@sveltejs+vite-plugin-svelte@7.1.2___svelte@5.55.9___vite@8.0.13____@types+node@24.12.4___@types+node@24.12.4__svelte@5.55.9__typescript@6.0.3__vite@8.0.13___@types+node@24.12.4__@types+node@24.12.4_@sveltejs+vite-plugin-svelte@7.1.2__svelte@5.55.9__vite@8.0.13___@types+node@24.12.4__@types+node@24.12.4_@types+node@24.12.4_svelte@5.55.9_typescript@6.0.3_vite@8.0.13__@types+node@24.12.4",
+    "npm:@sveltejs/adapter-static@^3.0.10": "3.0.10_@sveltejs+kit@2.60.1__@sveltejs+vite-plugin-svelte@7.1.2___svelte@5.55.9___vite@8.0.13____@types+node@24.12.4___@types+node@24.12.4__svelte@5.55.9__typescript@6.0.3__vite@8.0.13___@types+node@24.12.4__@types+node@24.12.4",
     "npm:@sveltejs/kit@^2.57.0": "2.60.1_@sveltejs+vite-plugin-svelte@7.1.2__svelte@5.55.9__vite@8.0.13___@types+node@24.12.4__@types+node@24.12.4_svelte@5.55.9_typescript@6.0.3_vite@8.0.13__@types+node@24.12.4_@types+node@24.12.4",
     "npm:@sveltejs/vite-plugin-svelte@7": "7.1.2_svelte@5.55.9_vite@8.0.13__@types+node@24.12.4_@types+node@24.12.4",
     "npm:@tailwindcss/vite@^4.2.2": "4.3.0_vite@8.0.13__@types+node@24.12.4_@types+node@24.12.4",
@@ -267,6 +268,12 @@
     },
     "@sveltejs/adapter-auto@7.0.1_@sveltejs+kit@2.60.1__@sveltejs+vite-plugin-svelte@7.1.2___svelte@5.55.9___vite@8.0.13____@types+node@24.12.4___@types+node@24.12.4__svelte@5.55.9__typescript@6.0.3__vite@8.0.13___@types+node@24.12.4__@types+node@24.12.4_@sveltejs+vite-plugin-svelte@7.1.2__svelte@5.55.9__vite@8.0.13___@types+node@24.12.4__@types+node@24.12.4_@types+node@24.12.4_svelte@5.55.9_typescript@6.0.3_vite@8.0.13__@types+node@24.12.4": {
       "integrity": "sha512-dvuPm1E7M9NI/+canIQ6KKQDU2AkEefEZ2Dp7cY6uKoPq9Z/PhOXABe526UdW2mN986gjVkuSLkOYIBnS/M2LQ==",
+      "dependencies": [
+        "@sveltejs/kit"
+      ]
+    },
+    "@sveltejs/adapter-static@3.0.10_@sveltejs+kit@2.60.1__@sveltejs+vite-plugin-svelte@7.1.2___svelte@5.55.9___vite@8.0.13____@types+node@24.12.4___@types+node@24.12.4__svelte@5.55.9__typescript@6.0.3__vite@8.0.13___@types+node@24.12.4__@types+node@24.12.4": {
+      "integrity": "sha512-7D9lYFWJmB7zxZyTE/qxjksvMqzMuYrrsyh1f4AlZqeZeACPRySjbC3aFiY55wb1tWUaKOQG9PVbm74JcN2Iew==",
       "dependencies": [
         "@sveltejs/kit"
       ]
@@ -1699,6 +1706,7 @@
         "npm:@eslint/js@^10.0.1",
         "npm:@lucide/svelte@^1.21.0",
         "npm:@sveltejs/adapter-auto@^7.0.1",
+        "npm:@sveltejs/adapter-static@^3.0.10",
         "npm:@sveltejs/kit@^2.57.0",
         "npm:@sveltejs/vite-plugin-svelte@7",
         "npm:@tailwindcss/vite@^4.2.2",
