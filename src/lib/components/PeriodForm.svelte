@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { TimelinePeriod, TimeConfig } from '$lib/types';
 	import { dateToCustomInput, parseCustomDateString } from '$lib/time';
+	import { nextColor } from '$lib/color';
 
 	let {
 		period = null,
@@ -14,28 +15,21 @@
 		onCancel: () => void;
 	} = $props();
 
-	const initialPeriod = period;
-	const initialConfig = timeConfig;
-	const defaultDate = initialConfig.precision === 'year'
+	const defaultDate = timeConfig.precision === 'year'
 		? String(new Date().getFullYear())
 		: new Date().toISOString().split('T')[0];
 
 	let startInput = $state(
-		initialPeriod ? dateToCustomInput(initialPeriod.start, initialConfig) : defaultDate
+		period ? dateToCustomInput(period.start, timeConfig) : defaultDate
 	);
 	let endInput = $state(
-		initialPeriod ? dateToCustomInput(initialPeriod.end, initialConfig) : defaultDate
+		period ? dateToCustomInput(period.end, timeConfig) : defaultDate
 	);
-	let label = $state(initialPeriod?.label ?? '');
-	function randomColor(): string {
-		const colors = ['#3b82f6','#ef4444','#10b981','#8b5cf6','#f59e0b','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48','#0ea5e9','#a855f7','#d946ef'];
-		return colors[Math.floor(Math.random() * colors.length)];
-	}
-
-	let color = $state(initialPeriod?.color ?? randomColor());
+	let label = $state(period?.label ?? '');
+	let color = $state(period?.color ?? nextColor());
 
 	let realStartPreview = $derived(() => {
-		const parsed = parseCustomDateString(startInput, initialConfig);
+		const parsed = parseCustomDateString(startInput, timeConfig);
 		if (!parsed) return 'Invalid';
 		return parsed.toLocaleDateString('en-US', {
 			year: 'numeric',
@@ -45,7 +39,7 @@
 	});
 
 	let realEndPreview = $derived(() => {
-		const parsed = parseCustomDateString(endInput, initialConfig);
+		const parsed = parseCustomDateString(endInput, timeConfig);
 		if (!parsed) return 'Invalid';
 		return parsed.toLocaleDateString('en-US', {
 			year: 'numeric',
@@ -56,8 +50,8 @@
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
-		const parsedStart = parseCustomDateString(startInput, initialConfig);
-		const parsedEnd = parseCustomDateString(endInput, initialConfig);
+		const parsedStart = parseCustomDateString(startInput, timeConfig);
+		const parsedEnd = parseCustomDateString(endInput, timeConfig);
 		if (!parsedStart || !parsedEnd) return;
 		onSubmit({ start: parsedStart, end: parsedEnd, label, color });
 	}
@@ -123,7 +117,7 @@
 		</div>
 	</div>
 
-	<div class="flex justify-end gap-2 pt-1">
+	<div class="flex justify-end gap-2">
 		<button
 			type="button"
 			onclick={onCancel}

@@ -7,11 +7,10 @@
 		onCancel: () => void;
 	} = $props();
 
-	const initial = config;
-	let name = $state(initial.name);
-	let epoch = $state(initial.epoch);
-	let scale = $state(initial.scale);
-	let precision = $state<'year' | 'date'>(initial.precision);
+	let name = $state(config.name);
+	let epoch = $state(config.epoch);
+	let scale = $state(config.scale);
+	let precision = $state<'year' | 'date'>(config.precision);
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -114,7 +113,7 @@
 
 	<div class="rounded-lg bg-gray-50 p-2">
 		<p class="mb-1 text-[10px] font-medium text-gray-500 uppercase">Preview</p>
-		<div class="space-y-0.5">
+		<div class="flex flex-col gap-0.5">
 			{#each preview() as row}
 				<div class="flex justify-between text-[11px]">
 					<span class="text-gray-600">{row.label}</span>
@@ -124,7 +123,7 @@
 		</div>
 	</div>
 
-	<div class="flex justify-end gap-2 pt-1">
+	<div class="flex justify-end gap-2">
 		<button
 			type="button"
 			onclick={onCancel}

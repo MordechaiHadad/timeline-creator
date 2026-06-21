@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { TimelineEvent, TimeConfig } from '$lib/types';
-	import { dateToCustomInput, parseCustomDateString, formatCustomYear } from '$lib/time';
+	import { dateToCustomInput, parseCustomDateString } from '$lib/time';
+	import { nextColor } from '$lib/color';
 
 	let {
 		event = null,
@@ -14,26 +15,19 @@
 		onCancel: () => void;
 	} = $props();
 
-	const initialEvent = event;
-	const initialConfig = timeConfig;
-	const defaultDate = initialConfig.precision === 'year'
+	const defaultDate = timeConfig.precision === 'year'
 		? String(new Date().getFullYear())
 		: new Date().toISOString().split('T')[0];
 
 	let dateInput = $state(
-		initialEvent ? dateToCustomInput(initialEvent.date, initialConfig) : defaultDate
+		event ? dateToCustomInput(event.date, timeConfig) : defaultDate
 	);
-	let label = $state(initialEvent?.label ?? '');
-	let description = $state(initialEvent?.description ?? '');
-	function randomColor(): string {
-		const colors = ['#3b82f6','#ef4444','#10b981','#8b5cf6','#f59e0b','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48','#0ea5e9','#a855f7','#d946ef'];
-		return colors[Math.floor(Math.random() * colors.length)];
-	}
-
-	let color = $state(initialEvent?.color ?? randomColor());
+	let label = $state(event?.label ?? '');
+	let description = $state(event?.description ?? '');
+	let color = $state(event?.color ?? nextColor());
 
 	let realDatePreview = $derived(() => {
-		const parsed = parseCustomDateString(dateInput, initialConfig);
+		const parsed = parseCustomDateString(dateInput, timeConfig);
 		if (!parsed) return 'Invalid date';
 		return parsed.toLocaleDateString('en-US', {
 			year: 'numeric',
@@ -44,7 +38,7 @@
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
-		const parsed = parseCustomDateString(dateInput, initialConfig);
+		const parsed = parseCustomDateString(dateInput, timeConfig);
 		if (!parsed) return;
 		onSubmit({ date: parsed, label, description, color });
 	}
@@ -108,7 +102,7 @@
 		</div>
 	</div>
 
-	<div class="flex justify-end gap-2 pt-1">
+	<div class="flex justify-end gap-2">
 		<button
 			type="button"
 			onclick={onCancel}

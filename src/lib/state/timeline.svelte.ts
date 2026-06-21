@@ -177,6 +177,16 @@ function createTimelineState() {
 		setTitle(title: string) {
 			data.title = title;
 		},
+		exportJson(): string {
+			return serialize({ data, timeConfig });
+		},
+		loadFromJson(json: string): void {
+			const parsed = deserialize(json);
+			data = { ...parsed.data };
+			timeConfig = { ...parsed.timeConfig };
+			editingEvent = null;
+			editingPeriod = null;
+		},
 		initPersistence
 	};
 }

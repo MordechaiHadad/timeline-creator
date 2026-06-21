@@ -3,3 +3,11 @@
 button {
 	cursor: pointer;
 }
+
+dialog {
+	margin: auto;
+}
+
+dialog::backdrop {
+	backdrop-filter: blur(4px);
+}
