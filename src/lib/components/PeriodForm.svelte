@@ -15,16 +15,13 @@
 		onCancel: () => void;
 	} = $props();
 
-	const defaultDate = timeConfig.precision === 'year'
-		? String(new Date().getFullYear())
-		: new Date().toISOString().split('T')[0];
+	const defaultDate =
+		timeConfig.precision === 'year'
+			? String(new Date().getFullYear())
+			: new Date().toISOString().split('T')[0];
 
-	let startInput = $state(
-		period ? dateToCustomInput(period.start, timeConfig) : defaultDate
-	);
-	let endInput = $state(
-		period ? dateToCustomInput(period.end, timeConfig) : defaultDate
-	);
+	let startInput = $state(period ? dateToCustomInput(period.start, timeConfig) : defaultDate);
+	let endInput = $state(period ? dateToCustomInput(period.end, timeConfig) : defaultDate);
 	let label = $state(period?.label ?? '');
 	let color = $state(period?.color ?? nextColor());
 

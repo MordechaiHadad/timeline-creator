@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { TimeConfig } from '$lib/types';
 
-	let { config, onSubmit, onCancel }: {
+	let {
+		config,
+		onSubmit,
+		onCancel
+	}: {
 		config: TimeConfig;
 		onSubmit: (config: TimeConfig) => void;
 		onCancel: () => void;

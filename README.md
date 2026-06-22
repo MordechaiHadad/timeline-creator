@@ -21,14 +21,14 @@ npm run dev
 
 ## Scripts
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start dev server |
-| `npm run build` | Production build |
+| Command           | Description              |
+| ----------------- | ------------------------ |
+| `npm run dev`     | Start dev server         |
+| `npm run build`   | Production build         |
 | `npm run preview` | Preview production build |
-| `npm run check` | Type checking |
-| `npm run lint` | Lint and format check |
-| `npm run format` | Auto-format code |
+| `npm run check`   | Type checking            |
+| `npm run lint`    | Lint and format check    |
+| `npm run format`  | Auto-format code         |
 
 ## Tech Stack
 

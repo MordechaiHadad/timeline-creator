@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Settings, FilePlus, Download, Copy, Upload, ClipboardPaste, ChevronDown } from '@lucide/svelte';
+	import { Settings, FilePlus, Download, Copy, Upload, ClipboardPaste } from '@lucide/svelte';
+	import DropdownMenu from '$lib/components/DropdownMenu.svelte';
 	import Timeline from '$lib/components/Timeline.svelte';
 	import TimelineControls from '$lib/components/TimelineControls.svelte';
 	import TimelineSidebar from '$lib/components/TimelineSidebar.svelte';
@@ -13,11 +14,12 @@
 
 	let pasteJsonText = $state('');
 	let jsonStatus = $state('');
-	let showExportMenu = $state(false);
-	let showImportMenu = $state(false);
-	let zoomControls = $state<{ zoomIn: () => void; zoomOut: () => void; reset: () => void; exportPng: () => void } | null>(
-		null
-	);
+	let zoomControls = $state<{
+		zoomIn: () => void;
+		zoomOut: () => void;
+		reset: () => void;
+		exportPng: () => void;
+	} | null>(null);
 	let eventDialog = $state<HTMLDialogElement | null>(null);
 	let periodDialog = $state<HTMLDialogElement | null>(null);
 	let timeConfigDialog = $state<HTMLDialogElement | null>(null);
@@ -76,11 +78,6 @@
 	function flashStatus(msg: string) {
 		jsonStatus = msg;
 		setTimeout(() => (jsonStatus = ''), 2000);
-	}
-
-	function closeMenus() {
-		showExportMenu = false;
-		showImportMenu = false;
 	}
 
 	function exportJsonToClipboard() {
@@ -152,7 +149,7 @@
 		<div class="flex items-center gap-3">
 			<h1
 				contenteditable
-				class="text-lg font-bold text-gray-900 outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 -mx-1"
+				class="-mx-1 rounded px-1 text-lg font-bold text-gray-900 outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1"
 				onblur={(e) => {
 					const text = e.currentTarget.textContent?.trim();
 					if (text) timeline.setTitle(text);
@@ -183,86 +180,23 @@
 				onReset={() => zoomControls?.reset()}
 			/>
 			<div class="h-5 w-px bg-gray-200"></div>
-			<div class="relative">
-				<button
-					onclick={() => { closeMenus(); showExportMenu = !showExportMenu; }}
-					class="flex h-8 items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
-				>
-					<Download size={14} />
-					Export
-					<ChevronDown size={12} />
-				</button>
-				{#if showExportMenu}
-					<div
-						onclick={closeMenus}
-						onkeydown={(e) => { if (e.key === 'Escape') closeMenus(); }}
-						class="absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
-						role="menu"
-						tabindex="0"
-					>
-						<button
-							onclick={() => zoomControls?.exportPng()}
-							class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50"
-							role="menuitem"
-						>
-							<Download size={14} />
-							PNG Image
-						</button>
-						<button
-							onclick={exportJsonToClipboard}
-							class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50"
-							role="menuitem"
-						>
-							<Copy size={14} />
-							JSON to Clipboard
-						</button>
-						<button
-							onclick={exportJsonToFile}
-							class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50"
-							role="menuitem"
-						>
-							<Download size={14} />
-							JSON File
-						</button>
-					</div>
-				{/if}
-			</div>
-			<div class="relative">
-				<button
-					onclick={() => { closeMenus(); showImportMenu = !showImportMenu; }}
-					class="flex h-8 items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
-				>
-					<Upload size={14} />
-					Import
-					<ChevronDown size={12} />
-				</button>
-				{#if showImportMenu}
-					<div
-						onclick={closeMenus}
-						onkeydown={(e) => { if (e.key === 'Escape') closeMenus(); }}
-						class="absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
-						role="menu"
-						tabindex="0"
-					>
-						<button
-							onclick={importJsonFromFile}
-							class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50"
-							role="menuitem"
-						>
-							<Upload size={14} />
-							JSON from File
-						</button>
-						<button
-							onclick={importJsonFromPaste}
-							class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50"
-							role="menuitem"
-						>
-							<ClipboardPaste size={14} />
-							JSON from Text
-						</button>
-					</div>
-				{/if}
-			</div>
+			<DropdownMenu
+				triggerLabel="Export"
+				triggerIcon={Download}
+				items={[
+					{ icon: Download, label: 'PNG Image', onclick: () => zoomControls?.exportPng() },
+					{ icon: Copy, label: 'JSON to Clipboard', onclick: exportJsonToClipboard },
+					{ icon: Download, label: 'JSON File', onclick: exportJsonToFile }
+				]}
+			/>
+			<DropdownMenu
+				triggerLabel="Import"
+				triggerIcon={Upload}
+				items={[
+					{ icon: Upload, label: 'JSON from File', onclick: importJsonFromFile },
+					{ icon: ClipboardPaste, label: 'JSON from Text', onclick: importJsonFromPaste }
+				]}
+			/>
 			{#if jsonStatus}
 				<span class="text-[10px] font-medium text-green-600">{jsonStatus}</span>
 			{/if}
@@ -312,10 +246,7 @@
 		</main>
 	</div>
 
-	<dialog
-		bind:this={eventDialog}
-		class="w-80 rounded-xl bg-white p-4 shadow-xl"
-	>
+	<dialog bind:this={eventDialog} class="w-80 rounded-xl bg-white p-4 shadow-xl">
 		<EventForm
 			event={timeline.editingEvent}
 			timeConfig={timeline.timeConfig}
@@ -327,10 +258,7 @@
 		/>
 	</dialog>
 
-	<dialog
-		bind:this={periodDialog}
-		class="w-80 rounded-xl bg-white p-4 shadow-xl"
-	>
+	<dialog bind:this={periodDialog} class="w-80 rounded-xl bg-white p-4 shadow-xl">
 		<PeriodForm
 			period={timeline.editingPeriod}
 			timeConfig={timeline.timeConfig}
@@ -342,10 +270,7 @@
 		/>
 	</dialog>
 
-	<dialog
-		bind:this={timeConfigDialog}
-		class="w-80 rounded-xl bg-white p-4 shadow-xl"
-	>
+	<dialog bind:this={timeConfigDialog} class="w-80 rounded-xl bg-white p-4 shadow-xl">
 		<TimeConfigForm
 			config={timeline.timeConfig}
 			onSubmit={handleTimeConfigSubmit}
@@ -353,10 +278,7 @@
 		/>
 	</dialog>
 
-	<dialog
-		bind:this={pasteJsonDialog}
-		class="w-96 rounded-xl bg-white p-4 shadow-xl"
-	>
+	<dialog bind:this={pasteJsonDialog} class="w-96 rounded-xl bg-white p-4 shadow-xl">
 		<form method="dialog" class="flex flex-col gap-3">
 			<h3 class="text-sm font-semibold text-gray-900">Import JSON</h3>
 			<textarea
