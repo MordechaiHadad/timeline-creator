@@ -144,7 +144,7 @@
 	}
 </script>
 
-<div class="flex h-screen flex-col bg-gray-100">
+<div class="flex h-screen flex-col bg-gray-100 overflow-x-hidden">
 	<header class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
 		<div class="flex items-center gap-3">
 			<h1
