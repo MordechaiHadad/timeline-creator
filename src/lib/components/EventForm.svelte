@@ -15,15 +15,28 @@
 		onCancel: () => void;
 	} = $props();
 
-	const defaultDate =
-		timeConfig.precision === 'year'
-			? String(new Date().getFullYear())
-			: new Date().toISOString().split('T')[0];
+	let dateInput = $state('');
+	let label = $state('');
+	let description = $state('');
+	let color = $state('#3b82f6');
 
-	let dateInput = $state(event ? dateToCustomInput(event.date, timeConfig) : defaultDate);
-	let label = $state(event?.label ?? '');
-	let description = $state(event?.description ?? '');
-	let color = $state(event?.color ?? nextColor());
+	$effect(() => {
+		if (event) {
+			dateInput = dateToCustomInput(event.date, timeConfig);
+			label = event.label;
+			description = event.description;
+			color = event.color;
+		} else {
+			const defaultDate =
+				timeConfig.precision === 'year'
+					? String(new Date().getFullYear())
+					: new Date().toISOString().split('T')[0];
+			dateInput = defaultDate;
+			label = '';
+			description = '';
+			color = nextColor();
+		}
+	});
 
 	let realDatePreview = $derived(() => {
 		const parsed = parseCustomDateString(dateInput, timeConfig);
