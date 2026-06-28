@@ -13,6 +13,13 @@ export function makeDate(year: number, month: number, day: number): Date {
 	return new Date(year + YEAR_OFFSET, month, day);
 }
 
+export function formatRealDate(date: Date): string {
+	const realYear = date.getFullYear() - YEAR_OFFSET;
+	const month = date.toLocaleDateString('en-US', { month: 'short' });
+	const day = date.getDate();
+	return `${month} ${day}, ${realYear}`;
+}
+
 export function customToReal(customYear: number, config: TimeConfig, month = 0, day = 1): Date {
 	const realYear = Math.round(config.epoch + customYear * config.scale);
 	return new Date(realYear + YEAR_OFFSET, month, day);

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { TimelinePeriod, TimeConfig } from '$lib/types';
-	import { dateToCustomInput, parseCustomDateString } from '$lib/time';
+	import { dateToCustomInput, parseCustomDateString, formatRealDate } from '$lib/time';
 	import { nextColor } from '$lib/color';
 
 	let {
@@ -28,21 +28,13 @@
 	let realStartPreview = $derived(() => {
 		const parsed = parseCustomDateString(startInput, timeConfig);
 		if (!parsed) return 'Invalid';
-		return parsed.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric'
-		});
+		return formatRealDate(parsed);
 	});
 
 	let realEndPreview = $derived(() => {
 		const parsed = parseCustomDateString(endInput, timeConfig);
 		if (!parsed) return 'Invalid';
-		return parsed.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric'
-		});
+		return formatRealDate(parsed);
 	});
 
 	function handleSubmit(e: Event) {
