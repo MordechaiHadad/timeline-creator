@@ -21,7 +21,7 @@
 	import PeriodForm from '$lib/components/PeriodForm.svelte';
 	import TimeConfigForm from '$lib/components/TimeConfigForm.svelte';
 	import { createStorage } from '$lib/host/storage';
-	import { timeline, type TimelineStatus } from '$lib/state/timeline.svelte';
+	import { timeline } from '$lib/state/timeline.svelte';
 	import { theme, type ThemeMode } from '$lib/state/theme.svelte';
 	import type { TimeConfig } from '$lib/types';
 	import { toast } from 'svelte-sonner';
@@ -44,31 +44,6 @@
 		{ mode: 'dark', icon: Moon, label: 'Dark theme' },
 		{ mode: 'system', icon: Monitor, label: 'System theme' }
 	];
-
-	function statusLabel(status: TimelineStatus): string {
-		switch (status) {
-			case 'loading':
-				return 'Waiting for Obsidian';
-			case 'saving':
-				return 'Saving';
-			case 'saved':
-				return 'Saved';
-			case 'conflict':
-				return 'File changed';
-			case 'save-error':
-				return 'Save failed';
-			case 'load-error':
-				return 'Open failed';
-		}
-	}
-
-	function statusColor(status: TimelineStatus): string {
-		if (status === 'conflict' || status === 'save-error' || status === 'load-error') {
-			return 'text-amber-600 dark:text-amber-400';
-		}
-		if (status === 'saving' || status === 'loading') return 'text-zinc-500 dark:text-zinc-400';
-		return 'text-emerald-600 dark:text-emerald-400';
-	}
 
 	let pasteJsonText = $state('');
 	let zoomControls = $state<{
@@ -257,11 +232,6 @@
 						{ icon: ClipboardPaste, label: 'Paste JSON', onclick: importJsonFromPaste }
 					]}
 				/>
-			{/if}
-			{#if embedded}
-				<span class="text-[10px] font-medium {statusColor(timeline.status)}">
-					{statusLabel(timeline.status)}
-				</span>
 			{/if}
 			<button onclick={() => timeConfigDialog?.showModal()} class="ui-btn" title="Time settings">
 				<Settings size={14} />
