@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getContext, type Snippet } from 'svelte';
-	import type { Context } from './context';
-	import { toggle } from './functions';
+	import type { Context } from './context.js';
+	import { toggle } from './functions.js';
 
 	type Props = {
 		autoCloseOnClick?: boolean;

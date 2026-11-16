@@ -43,38 +43,34 @@
 </script>
 
 <form onsubmit={handleSubmit} class="flex flex-col gap-3">
-	<h3 class="text-sm font-semibold text-gray-900">Time Configuration</h3>
+	<h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Time Configuration</h3>
 
 	<div class="flex flex-col gap-1">
-		<label for="tc-name" class="text-xs font-medium text-gray-600">Calendar Name</label>
+		<label for="tc-name" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+			Calendar Name
+		</label>
 		<input
 			id="tc-name"
 			type="text"
 			bind:value={name}
 			required
 			placeholder="e.g. MDW, Star Date, etc."
-			class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+			class="ui-field"
 		/>
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<label for="tc-epoch" class="text-xs font-medium text-gray-600">
+		<label for="tc-epoch" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
 			Epoch (real year = custom year 0)
 		</label>
-		<input
-			id="tc-epoch"
-			type="number"
-			bind:value={epoch}
-			required
-			class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-		/>
-		<p class="text-[10px] text-gray-400">
+		<input id="tc-epoch" type="number" bind:value={epoch} required class="ui-field" />
+		<p class="text-[10px] text-zinc-400 dark:text-zinc-500">
 			The real-world year that corresponds to year 0 in your calendar
 		</p>
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<label for="tc-scale" class="text-xs font-medium text-gray-600">
+		<label for="tc-scale" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
 			Scale (real years per custom year)
 		</label>
 		<input
@@ -84,69 +80,62 @@
 			min="0.01"
 			bind:value={scale}
 			required
-			class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+			class="ui-field"
 		/>
-		<p class="text-[10px] text-gray-400">
+		<p class="text-[10px] text-zinc-400 dark:text-zinc-500">
 			How many real years pass per 1 year in your calendar (1 = same speed)
 		</p>
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<p class="text-xs font-medium text-gray-600">Date Precision</p>
+		<p class="text-xs font-medium text-zinc-600 dark:text-zinc-400">Date Precision</p>
 		<div class="flex gap-2">
 			<button
 				type="button"
 				onclick={() => (precision = 'year')}
-				class="flex-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors {precision ===
-				'year'
-					? 'border-blue-500 bg-blue-50 text-blue-700'
-					: 'border-gray-200 text-gray-600 hover:bg-gray-50'}"
+				class="ui-btn flex-1 {precision === 'year'
+					? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:border-indigo-400/40 dark:bg-indigo-400/15 dark:text-indigo-300'
+					: ''}"
 			>
 				Year only
 			</button>
 			<button
 				type="button"
 				onclick={() => (precision = 'date')}
-				class="flex-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors {precision ===
-				'date'
-					? 'border-blue-500 bg-blue-50 text-blue-700'
-					: 'border-gray-200 text-gray-600 hover:bg-gray-50'}"
+				class="ui-btn flex-1 {precision === 'date'
+					? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:border-indigo-400/40 dark:bg-indigo-400/15 dark:text-indigo-300'
+					: ''}"
 			>
 				Year + Month + Day
 			</button>
 		</div>
-		<p class="text-[10px] text-gray-400">
+		<p class="text-[10px] text-zinc-400 dark:text-zinc-500">
 			{precision === 'year'
 				? 'Dates will only use years (e.g. 5000). Months and days are ignored.'
 				: 'Dates use full precision (e.g. 5000-03-15).'}
 		</p>
 	</div>
 
-	<div class="rounded-lg bg-gray-50 p-2">
-		<p class="mb-1 text-[10px] font-medium text-gray-500 uppercase">Preview</p>
+	<div
+		class="rounded-md border border-black/10 bg-black/5 p-2 dark:border-white/10 dark:bg-white/5"
+	>
+		<p
+			class="mb-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400"
+		>
+			Preview
+		</p>
 		<div class="flex flex-col gap-0.5">
 			{#each preview as row (row.label)}
 				<div class="flex justify-between text-[11px]">
-					<span class="text-gray-600">{row.label}</span>
-					<span class="font-mono text-gray-900">= year {row.real}</span>
+					<span class="text-zinc-600 dark:text-zinc-400">{row.label}</span>
+					<span class="font-mono text-zinc-900 dark:text-zinc-100">= year {row.real}</span>
 				</div>
 			{/each}
 		</div>
 	</div>
 
 	<div class="flex justify-end gap-2">
-		<button
-			type="button"
-			onclick={onCancel}
-			class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50"
-		>
-			Cancel
-		</button>
-		<button
-			type="submit"
-			class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700"
-		>
-			Save
-		</button>
+		<button type="button" onclick={onCancel} class="ui-btn">Cancel</button>
+		<button type="submit" class="ui-btn-primary">Save</button>
 	</div>
 </form>

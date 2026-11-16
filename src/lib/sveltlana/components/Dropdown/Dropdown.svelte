@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { setContext, type Snippet } from 'svelte';
-	import type { Context } from './context';
+	import type { Context } from './context.js';
 	import { twMerge } from 'tailwind-merge';
-	import { toggle } from './functions';
-	import { onClickOutside } from '../../actions/onClickOutside';
+	import { toggle } from './functions.js';
+	import { onClickOutside } from '../../actions/onClickOutside.js';
 
 	type Props = {
 		closeOnOutsideClick?: boolean;
@@ -23,14 +23,14 @@
 		oncollapse = () => {}
 	}: Props = $props();
 
-	const uid = crypto.randomUUID();
+	const uid = $props.id();
 
 	let context: Context = $state({
 		uid,
 		isExpanded: false,
 		currentIndex: -1,
-		onExpand: onexpand,
-		onCollapse: oncollapse
+		onExpand: (isExpanded) => onexpand(isExpanded),
+		onCollapse: (isExpanded) => oncollapse(isExpanded)
 	});
 
 	setContext('dropdown', context);
@@ -52,35 +52,45 @@
 		const targets = ['ArrowUp', 'ArrowDown'];
 		if (!targets.includes(event.key)) return;
 		event.preventDefault();
+		let itemsIndex: number;
 
-		const target = self?.querySelector('.dropdown-content') as HTMLElement | undefined;
-		const length = target?.children.length ?? 0;
-		if (!target || length === 0) return;
+		let target = self?.querySelector('#dropdown-content') as HTMLElement | undefined;
+
+		if (!target) return;
+
+		const length = target.children.length;
+		itemsIndex = getActiveItemIndex();
+		currentItem = target.children[itemsIndex] as HTMLElement;
 
 		const isArrowUp = event.key === 'ArrowUp';
+		const edgeIndex = isArrowUp ? 0 : length - 1;
+
+		if (itemsIndex === edgeIndex) itemsIndex = isArrowUp ? length : -1;
+
 		const direction = isArrowUp ? -1 : 1;
-		const activeIndex = getActiveItemIndex(target);
-		const startIndex = activeIndex === -1 ? (isArrowUp ? length : -1) : activeIndex;
-		let activeItemIndex = (startIndex + direction + length) % length;
+		let activeItemIndex = itemsIndex + direction;
 		let activeItemElement = target.children[activeItemIndex] as HTMLElement;
 
-		let attempts = 0;
-		while (activeItemElement.hasAttribute('data-seperator') && attempts < length) {
+		if (!activeItemElement) return;
+
+		while (activeItemElement.hasAttribute('data-seperator')) {
 			activeItemIndex = (activeItemIndex + direction + length) % length;
 			activeItemElement = target.children[activeItemIndex] as HTMLElement;
-			attempts++;
 		}
-		if (activeItemElement.hasAttribute('data-seperator')) return;
 
-		if (currentItem) setInactiveItem(currentItem);
-		currentItem = activeItemElement;
 		setActiveItem(activeItemElement);
-		context.currentIndex = activeItemIndex;
+		itemsIndex = activeItemIndex;
+		setInactiveItem(currentItem);
+		currentItem = activeItemElement;
+		context.currentIndex = itemsIndex;
 	};
 
-	const getActiveItemIndex = (target: HTMLElement) => {
-		const activeItem = target.querySelector('[data-active]');
-		return activeItem ? Array.from(target.children).indexOf(activeItem) : -1;
+	const getActiveItemIndex = () => {
+		const activeItem = self?.querySelector('[data-active]');
+		const target = self?.querySelector('#dropdown-content') as HTMLElement;
+		const items = Array.from(target?.children ?? []);
+		const index = activeItem ? items.indexOf(activeItem) : -1;
+		return index;
 	};
 
 	const setActiveItem = (element: HTMLElement) => {

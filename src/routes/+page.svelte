@@ -1,5 +1,17 @@
 <script lang="ts">
-	import { Settings, FilePlus, Download, Copy, Upload, ClipboardPaste } from '@lucide/svelte';
+	import {
+		Settings,
+		FilePlus,
+		Download,
+		Copy,
+		Upload,
+		ClipboardPaste,
+		Sun,
+		Moon,
+		Monitor,
+		PanelLeftClose,
+		PanelLeftOpen
+	} from '@lucide/svelte';
 	import { browser } from '$app/environment';
 	import DropdownMenu from '$lib/components/DropdownMenu.svelte';
 	import Timeline from '$lib/components/Timeline.svelte';
@@ -10,12 +22,27 @@
 	import TimeConfigForm from '$lib/components/TimeConfigForm.svelte';
 	import { createStorage } from '$lib/host/storage';
 	import { timeline, type TimelineStatus } from '$lib/state/timeline.svelte';
+	import { theme, type ThemeMode } from '$lib/state/theme.svelte';
 	import type { TimeConfig } from '$lib/types';
 
 	if (browser) timeline.init(createStorage());
 
 	const embedded = $derived(timeline.embedded);
 	const editable = $derived(timeline.status !== 'loading' && timeline.status !== 'load-error');
+
+	const SIDEBAR_KEY = 'timeline-sidebar-collapsed';
+	let sidebarCollapsed = $state(browser ? localStorage.getItem(SIDEBAR_KEY) === 'true' : false);
+
+	function toggleSidebar() {
+		sidebarCollapsed = !sidebarCollapsed;
+		localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed));
+	}
+
+	const themeOptions: Array<{ mode: ThemeMode; icon: typeof Sun; label: string }> = [
+		{ mode: 'light', icon: Sun, label: 'Light theme' },
+		{ mode: 'dark', icon: Moon, label: 'Dark theme' },
+		{ mode: 'system', icon: Monitor, label: 'System theme' }
+	];
 
 	function statusLabel(status: TimelineStatus): string {
 		switch (status) {
@@ -36,10 +63,10 @@
 
 	function statusColor(status: TimelineStatus): string {
 		if (status === 'conflict' || status === 'save-error' || status === 'load-error') {
-			return 'text-amber-600';
+			return 'text-amber-600 dark:text-amber-400';
 		}
-		if (status === 'saving' || status === 'loading') return 'text-gray-500';
-		return 'text-green-600';
+		if (status === 'saving' || status === 'loading') return 'text-zinc-500 dark:text-zinc-400';
+		return 'text-emerald-600 dark:text-emerald-400';
 	}
 
 	let pasteJsonText = $state('');
@@ -182,12 +209,14 @@
 	}
 </script>
 
-<div class="flex h-screen flex-col overflow-x-hidden bg-gray-100">
-	<header class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
-		<div class="flex items-center gap-3">
+<div class="flex h-screen flex-col overflow-x-hidden text-zinc-900 dark:text-zinc-100">
+	<header
+		class="relative z-20 flex items-center justify-between gap-3 border-b border-black/10 bg-white/55 px-4 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] dark:border-white/10 dark:bg-zinc-950/55 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+	>
+		<div class="flex min-w-0 items-center gap-2.5">
 			<h1
 				contenteditable={editable}
-				class="-mx-1 rounded px-1 text-lg font-bold text-gray-900 outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1"
+				class="-mx-1 max-w-[42vw] truncate rounded px-1 text-sm font-semibold tracking-tight text-zinc-900 outline-none focus:ring-1 focus:ring-indigo-500 dark:text-zinc-100"
 				onblur={(e) => {
 					const text = e.currentTarget.textContent?.trim();
 					if (text) timeline.setTitle(text);
@@ -202,22 +231,18 @@
 			>
 				{timeline.data.title}
 			</h1>
-			<span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+			<span class="ui-pill shrink-0">
 				{timeline.data.events.length} events, {timeline.data.periods.length} periods
 			</span>
-			{#if timeline.timeConfig.name !== 'Gregorian'}
-				<span class="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-600">
-					{timeline.timeConfig.name}
-				</span>
-			{/if}
 		</div>
-		<div class="flex items-center gap-2">
+
+		<div class="flex items-center gap-1.5">
 			<TimelineControls
 				onZoomIn={() => zoomControls?.zoomIn()}
 				onZoomOut={() => zoomControls?.zoomOut()}
 				onReset={() => zoomControls?.reset()}
 			/>
-			<div class="h-5 w-px bg-gray-200"></div>
+			<span class="mx-0.5 h-5 w-px bg-black/10 dark:bg-white/10"></span>
 			<DropdownMenu
 				triggerLabel="Export"
 				triggerIcon={Download}
@@ -241,7 +266,9 @@
 			{/if}
 			{#if jsonStatus}
 				<span
-					class="text-[10px] font-medium {jsonStatusIsError ? 'text-red-600' : 'text-green-600'}"
+					class="text-[10px] font-medium {jsonStatusIsError
+						? 'text-red-600 dark:text-red-400'
+						: 'text-emerald-600 dark:text-emerald-400'}"
 				>
 					{jsonStatus}
 				</span>
@@ -251,11 +278,7 @@
 					{statusLabel(timeline.status)}
 				</span>
 			{/if}
-			<button
-				onclick={() => timeConfigDialog?.showModal()}
-				class="flex h-8 items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
-				title="Time settings"
-			>
+			<button onclick={() => timeConfigDialog?.showModal()} class="ui-btn" title="Time settings">
 				<Settings size={14} />
 				{timeline.timeConfig.name}
 			</button>
@@ -266,31 +289,65 @@
 							timeline.clearAll();
 						}
 					}}
-					class="flex h-8 items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+					class="ui-btn"
 					title="New timeline"
 				>
 					<FilePlus size={14} />
 					New
 				</button>
 			{/if}
+			<span class="mx-0.5 h-5 w-px bg-black/10 dark:bg-white/10"></span>
+			<div
+				class="flex items-center gap-0.5 rounded-md border border-black/10 bg-white/60 p-0.5 dark:border-white/10 dark:bg-white/5"
+				role="group"
+				aria-label="Theme"
+			>
+				{#each themeOptions as option (option.mode)}
+					<button
+						onclick={() => theme.set(option.mode)}
+						class="grid size-6 place-items-center rounded transition-colors {theme.mode ===
+						option.mode
+							? 'bg-white text-zinc-900 shadow-sm dark:bg-white/15 dark:text-white'
+							: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
+						title={option.label}
+						aria-label={option.label}
+						aria-pressed={theme.mode === option.mode}
+					>
+						<option.icon size={13} />
+					</button>
+				{/each}
+			</div>
+			<button
+				onclick={toggleSidebar}
+				class="ui-btn px-2"
+				title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+				aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+				aria-expanded={!sidebarCollapsed}
+			>
+				{#if sidebarCollapsed}
+					<PanelLeftOpen size={15} />
+				{:else}
+					<PanelLeftClose size={15} />
+				{/if}
+			</button>
 		</div>
 	</header>
 
 	{#if timeline.status === 'conflict' && timeline.conflictContent !== null}
 		<div
-			class="flex items-center justify-between gap-3 border-b border-amber-200 bg-amber-50 px-6 py-2 text-xs text-amber-800"
+			class="flex items-center justify-between gap-3 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-800 backdrop-blur-xl dark:text-amber-200"
 		>
 			<span>This file changed in your vault while you were editing.</span>
 			<div class="flex gap-2">
 				<button
 					onclick={() => timeline.resolveConflict('reload')}
-					class="rounded border border-amber-300 bg-white px-2 py-1 text-[11px] font-medium hover:bg-amber-100"
+					class="rounded border border-amber-500/30 bg-white/70 px-2 py-1 text-[11px] font-medium hover:bg-amber-500/15 dark:bg-white/5"
 				>
 					Reload file
 				</button>
 				<button
 					onclick={() => timeline.resolveConflict('keep')}
-					class="rounded bg-amber-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-amber-700"
+					class="rounded bg-amber-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-amber-500"
 				>
 					Keep mine
 				</button>
@@ -300,12 +357,12 @@
 
 	{#if timeline.status === 'save-error'}
 		<div
-			class="flex items-center justify-between gap-3 border-b border-red-200 bg-red-50 px-6 py-2 text-xs text-red-700"
+			class="flex items-center justify-between gap-3 border-b border-red-500/30 bg-red-500/10 px-4 py-2 text-xs text-red-700 backdrop-blur-xl dark:text-red-300"
 		>
 			<span>{timeline.errorMessage}</span>
 			<button
 				onclick={() => timeline.retrySave()}
-				class="rounded border border-red-300 bg-white px-2 py-1 text-[11px] font-medium hover:bg-red-100"
+				class="rounded border border-red-500/30 bg-white/70 px-2 py-1 text-[11px] font-medium hover:bg-red-500/15 dark:bg-white/5"
 			>
 				Retry
 			</button>
@@ -315,19 +372,22 @@
 	{#if timeline.status === 'load-error'}
 		<div class="flex flex-1 items-center justify-center p-8">
 			<div class="max-w-sm text-center">
-				<p class="text-sm font-semibold text-gray-900">Could not open this timeline</p>
-				<p class="mt-1 text-xs text-gray-500">{timeline.errorMessage}</p>
+				<p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+					Could not open this timeline
+				</p>
+				<p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{timeline.errorMessage}</p>
 			</div>
 		</div>
 	{:else if timeline.status === 'loading' && embedded}
 		<div class="flex flex-1 items-center justify-center p-8">
-			<p class="text-sm text-gray-500">Waiting for Obsidian...</p>
+			<p class="text-sm text-zinc-500 dark:text-zinc-400">Waiting for Obsidian...</p>
 		</div>
 	{:else}
 		<div class="flex min-h-0 flex-1">
 			<TimelineSidebar
 				data={timeline.data}
 				timeConfig={timeline.timeConfig}
+				collapsed={sidebarCollapsed}
 				onAddEvent={() => {
 					eventDialog?.showModal();
 				}}
@@ -336,7 +396,7 @@
 				}}
 			/>
 
-			<main class="flex-1 p-4">
+			<main class="min-w-0 flex-1 p-3">
 				<Timeline
 					data={timeline.data}
 					timeConfig={timeline.timeConfig}
@@ -348,7 +408,7 @@
 		</div>
 	{/if}
 
-	<dialog bind:this={eventDialog} class="w-80 rounded-xl bg-white p-4 shadow-xl">
+	<dialog bind:this={eventDialog} class="ui-panel w-80 p-4">
 		<EventForm
 			event={timeline.editingEvent}
 			timeConfig={timeline.timeConfig}
@@ -360,7 +420,7 @@
 		/>
 	</dialog>
 
-	<dialog bind:this={periodDialog} class="w-80 rounded-xl bg-white p-4 shadow-xl">
+	<dialog bind:this={periodDialog} class="ui-panel w-80 p-4">
 		<PeriodForm
 			period={timeline.editingPeriod}
 			timeConfig={timeline.timeConfig}
@@ -372,7 +432,7 @@
 		/>
 	</dialog>
 
-	<dialog bind:this={timeConfigDialog} class="w-80 rounded-xl bg-white p-4 shadow-xl">
+	<dialog bind:this={timeConfigDialog} class="ui-panel w-80 p-4">
 		<TimeConfigForm
 			config={timeline.timeConfig}
 			onSubmit={handleTimeConfigSubmit}
@@ -380,7 +440,7 @@
 		/>
 	</dialog>
 
-	<dialog bind:this={pasteJsonDialog} class="w-96 rounded-xl bg-white p-4 shadow-xl">
+	<dialog bind:this={pasteJsonDialog} class="ui-panel w-96 p-4">
 		<form
 			onsubmit={(e) => {
 				e.preventDefault();
@@ -388,26 +448,17 @@
 			}}
 			class="flex flex-col gap-3"
 		>
-			<h3 class="text-sm font-semibold text-gray-900">Import Timeline File</h3>
+			<h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Import Timeline File</h3>
 			<textarea
 				bind:value={pasteJsonText}
-				class="h-40 w-full resize-none rounded-lg border border-gray-200 p-2 font-mono text-xs text-gray-700 focus:border-blue-500 focus:outline-none"
+				class="ui-field h-40 resize-none font-mono text-xs"
 				placeholder="Paste your timeline JSON here..."
 			></textarea>
 			<div class="flex justify-end gap-2">
-				<button
-					type="button"
-					onclick={() => pasteJsonDialog?.close()}
-					class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
-				>
+				<button type="button" onclick={() => pasteJsonDialog?.close()} class="ui-btn">
 					Cancel
 				</button>
-				<button
-					type="submit"
-					class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-				>
-					Import
-				</button>
+				<button type="submit" class="ui-btn-primary">Import</button>
 			</div>
 		</form>
 	</dialog>
