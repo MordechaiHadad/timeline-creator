@@ -15,20 +15,20 @@ A browser-based tool for creating interactive, customizable timelines with suppo
 ## Getting Started
 
 ```sh
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 ## Scripts
 
 | Command           | Description              |
 | ----------------- | ------------------------ |
-| `npm run dev`     | Start dev server         |
-| `npm run build`   | Production build         |
-| `npm run preview` | Preview production build |
-| `npm run check`   | Type checking            |
-| `npm run lint`    | Lint and format check    |
-| `npm run format`  | Auto-format code         |
+| `bun run dev`     | Start dev server         |
+| `bun run build`   | Production build         |
+| `bun run preview` | Preview production build |
+| `bun run check`   | Type checking            |
+| `bun run lint`    | Lint and format check    |
+| `bun run format`  | Auto-format code         |
 
 ## Tech Stack
 

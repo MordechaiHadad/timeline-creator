@@ -11,17 +11,24 @@
 		onCancel: () => void;
 	} = $props();
 
-	let name = $state(config.name);
-	let epoch = $state(config.epoch);
-	let scale = $state(config.scale);
-	let precision = $state<'year' | 'date'>(config.precision);
+	let name = $state('');
+	let epoch = $state(0);
+	let scale = $state(1);
+	let precision = $state<'year' | 'date'>('date');
+
+	$effect(() => {
+		name = config.name;
+		epoch = config.epoch;
+		scale = config.scale;
+		precision = config.precision;
+	});
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
 		onSubmit({ name, epoch, scale, precision });
 	}
 
-	let preview = $derived(() => {
+	let preview = $derived.by(() => {
 		const examples = [
 			{ custom: 0, label: 'Year 0' },
 			{ custom: 1000, label: 'Year 1000' },
@@ -118,7 +125,7 @@
 	<div class="rounded-lg bg-gray-50 p-2">
 		<p class="mb-1 text-[10px] font-medium text-gray-500 uppercase">Preview</p>
 		<div class="flex flex-col gap-0.5">
-			{#each preview() as row}
+			{#each preview as row (row.label)}
 				<div class="flex justify-between text-[11px]">
 					<span class="text-gray-600">{row.label}</span>
 					<span class="font-mono text-gray-900">= year {row.real}</span>

@@ -15,8 +15,7 @@
 
 {#if context.isExpanded}
 	<div
-		id="dropdown-content"
-		class={twMerge('z-50 flex flex-col', className)}
+		class={twMerge('dropdown-content z-50 flex flex-col', className)}
 		transition:transition
 		style:position-anchor="--dropdown-{context.uid}"
 	>
@@ -25,7 +24,7 @@
 {/if}
 
 <style>
-	:global(#dropdown-content) {
+	:global(.dropdown-content) {
 		position: fixed;
 		position-area: bottom;
 		position-try-fallbacks: flip-block, flip-inline;

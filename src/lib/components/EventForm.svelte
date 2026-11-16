@@ -27,18 +27,14 @@
 			description = event.description;
 			color = event.color;
 		} else {
-			const defaultDate =
-				timeConfig.precision === 'year'
-					? String(new Date().getFullYear())
-					: new Date().toISOString().split('T')[0];
-			dateInput = defaultDate;
+			dateInput = dateToCustomInput(new Date(), timeConfig);
 			label = '';
 			description = '';
 			color = nextColor();
 		}
 	});
 
-	let realDatePreview = $derived(() => {
+	let realDatePreview = $derived.by(() => {
 		const parsed = parseCustomDateString(dateInput, timeConfig);
 		if (!parsed) return 'Invalid date';
 		return formatRealDate(parsed);
@@ -70,7 +66,7 @@
 			class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 		/>
 		<p class="text-[10px] text-gray-400">
-			Real date: {realDatePreview()}
+			Real date: {realDatePreview}
 		</p>
 	</div>
 

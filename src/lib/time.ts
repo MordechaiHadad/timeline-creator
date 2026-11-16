@@ -48,16 +48,6 @@ export function formatCustomDateShort(date: Date, config: TimeConfig): string {
 	return `${year} ${month} ${day}`;
 }
 
-export function formatCustomDateFull(date: Date, config: TimeConfig): string {
-	const year = Math.round(realToCustom(date, config));
-	if (config.precision === 'year') {
-		return String(year);
-	}
-	return date
-		.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-		.replace(/\d+/, `${year}-`);
-}
-
 export function parseCustomDateString(input: string, config: TimeConfig): Date | null {
 	const trimmed = input.trim();
 
@@ -75,7 +65,9 @@ export function parseCustomDateString(input: string, config: TimeConfig): Date |
 	const month = match[2] ? parseInt(match[2], 10) - 1 : 0;
 	const day = match[3] ? parseInt(match[3], 10) : 1;
 
-	return customToReal(customYear, config, month, day);
+	const date = customToReal(customYear, config, month, day);
+	if (date.getMonth() !== month || date.getDate() !== day) return null;
+	return date;
 }
 
 export function dateToCustomInput(date: Date, config: TimeConfig): string {

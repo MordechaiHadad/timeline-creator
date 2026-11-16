@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import * as d3 from 'd3';
 	import type { TimelineData, TimeConfig } from '$lib/types';
-	import { realToCustom, makeDate } from '$lib/time';
+	import { realToCustom, makeDate, formatCustomYear } from '$lib/time';
 
 	let {
 		data,
@@ -51,14 +51,6 @@
 		const max = d3.max(allDates)!;
 		const padding = (max.getTime() - min.getTime()) * 0.05 || 365 * 24 * 60 * 60 * 1000;
 		return [new Date(min.getTime() - padding), new Date(max.getTime() + padding)] as const;
-	}
-
-	function formatAxisTick(date: Date): string {
-		const custom = realToCustom(date, timeConfig);
-		if (timeConfig.scale === 1 && Number.isInteger(custom)) {
-			return String(Math.round(custom));
-		}
-		return custom.toFixed(1);
 	}
 
 	function render() {
@@ -155,9 +147,6 @@
 
 		svg.call(zoom);
 
-		currentZoom = zoom;
-		currentSvg = svg;
-
 		zoomRef = {
 			zoomIn: () => {
 				svg.transition().duration(300).call(zoom.scaleBy, 1.5);
@@ -200,12 +189,14 @@
 					canvas.toBlob((blob) => {
 						if (!blob) return;
 						const a = document.createElement('a');
-						a.href = URL.createObjectURL(blob);
+						const blobUrl = URL.createObjectURL(blob);
+						a.href = blobUrl;
 						a.download = `${data.title.replace(/[^a-zA-Z0-9]/g, '_') || 'timeline'}.png`;
 						a.click();
-						URL.revokeObjectURL(a.href);
+						setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 					}, 'image/png');
 				};
+				img.onerror = () => URL.revokeObjectURL(url);
 				img.src = url;
 			}
 		};
@@ -258,7 +249,7 @@
 			.axisBottom(xScale)
 			.ticks(10)
 			.tickSize(6)
-			.tickFormat((d) => formatAxisTick(d as Date));
+			.tickFormat((d) => formatCustomYear(d as Date, timeConfig));
 
 		axisGroup.call(axis);
 		axisGroup.select('.domain').attr('stroke', '#9ca3af').attr('stroke-width', 1);
@@ -326,9 +317,6 @@
 		});
 	}
 
-	let currentZoom: d3.ZoomBehavior<SVGSVGElement, unknown> | null = null;
-	let currentSvg: d3.Selection<SVGSVGElement, unknown, null, undefined> | null = null;
-
 	onMount(() => {
 		const observer = new ResizeObserver(() => {
 			if (containerEl) {
@@ -344,16 +332,16 @@
 	});
 
 	$effect(() => {
-		data.events;
-		data.periods;
-		timeConfig.epoch;
-		timeConfig.scale;
+		void data.events;
+		void data.periods;
+		void timeConfig.epoch;
+		void timeConfig.scale;
 		render();
 	});
 
 	$effect(() => {
-		width;
-		height;
+		void width;
+		void height;
 		if (!svgEl) return;
 		const vb = svgEl.getAttribute('viewBox');
 		if (!vb) return;

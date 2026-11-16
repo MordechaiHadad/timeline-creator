@@ -27,10 +27,7 @@
 			label = period.label;
 			color = period.color;
 		} else {
-			const defaultDate =
-				timeConfig.precision === 'year'
-					? String(new Date().getFullYear())
-					: new Date().toISOString().split('T')[0];
+			const defaultDate = dateToCustomInput(new Date(), timeConfig);
 			startInput = defaultDate;
 			endInput = defaultDate;
 			label = '';
@@ -38,13 +35,13 @@
 		}
 	});
 
-	let realStartPreview = $derived(() => {
+	let realStartPreview = $derived.by(() => {
 		const parsed = parseCustomDateString(startInput, timeConfig);
 		if (!parsed) return 'Invalid';
 		return formatRealDate(parsed);
 	});
 
-	let realEndPreview = $derived(() => {
+	let realEndPreview = $derived.by(() => {
 		const parsed = parseCustomDateString(endInput, timeConfig);
 		if (!parsed) return 'Invalid';
 		return formatRealDate(parsed);
@@ -76,7 +73,7 @@
 			placeholder={timeConfig.precision === 'year' ? 'e.g. 5000' : 'e.g. 5000-01-01'}
 			class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 		/>
-		<p class="text-[10px] text-gray-400">Real date: {realStartPreview()}</p>
+		<p class="text-[10px] text-gray-400">Real date: {realStartPreview}</p>
 	</div>
 
 	<div class="flex flex-col gap-1">
@@ -91,7 +88,7 @@
 			placeholder={timeConfig.precision === 'year' ? 'e.g. 5010' : 'e.g. 5010-12-31'}
 			class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 		/>
-		<p class="text-[10px] text-gray-400">Real date: {realEndPreview()}</p>
+		<p class="text-[10px] text-gray-400">Real date: {realEndPreview}</p>
 	</div>
 
 	<div class="flex flex-col gap-1">

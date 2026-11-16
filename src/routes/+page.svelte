@@ -14,6 +14,7 @@
 
 	let pasteJsonText = $state('');
 	let jsonStatus = $state('');
+	let jsonStatusIsError = $state(false);
 	let zoomControls = $state<{
 		zoomIn: () => void;
 		zoomOut: () => void;
@@ -51,17 +52,18 @@
 	}
 
 	function handlePeriodSubmit(data: { start: Date; end: Date; label: string; color: string }) {
+		const { start, end } = data.start > data.end ? { start: data.end, end: data.start } : data;
 		if (timeline.editingPeriod) {
 			timeline.updatePeriod(timeline.editingPeriod.id, {
-				start: data.start,
-				end: data.end,
+				start,
+				end,
 				label: data.label,
 				color: data.color
 			});
 		} else {
 			timeline.addPeriod({
-				start: data.start,
-				end: data.end,
+				start,
+				end,
 				label: data.label,
 				color: data.color
 			});
@@ -75,29 +77,35 @@
 		timeConfigDialog?.close();
 	}
 
-	function flashStatus(msg: string) {
+	function flashStatus(msg: string, isError = false) {
 		jsonStatus = msg;
+		jsonStatusIsError = isError;
 		setTimeout(() => (jsonStatus = ''), 2000);
 	}
 
-	function exportJsonToClipboard() {
-		navigator.clipboard.writeText(timeline.exportJson());
-		flashStatus('Copied!');
+	async function exportJsonToClipboard() {
+		try {
+			await navigator.clipboard.writeText(timeline.exportJson());
+			flashStatus('Copied!');
+		} catch {
+			flashStatus('Copy failed', true);
+		}
 	}
 
 	function exportJsonToFile() {
 		const blob = new Blob([timeline.exportJson()], { type: 'application/json' });
+		const blobUrl = URL.createObjectURL(blob);
 		const a = document.createElement('a');
-		a.href = URL.createObjectURL(blob);
-		a.download = `${timeline.data.title.replace(/[^a-zA-Z0-9]/g, '_') || 'timeline'}.json`;
+		a.href = blobUrl;
+		a.download = `${timeline.data.title.replace(/[^a-zA-Z0-9]/g, '_') || 'timeline'}.timeline`;
 		a.click();
-		URL.revokeObjectURL(a.href);
+		setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 	}
 
 	function importJsonFromFile() {
 		const input = document.createElement('input');
 		input.type = 'file';
-		input.accept = '.json';
+		input.accept = '.timeline,.json';
 		input.onchange = async () => {
 			const file = input.files?.[0];
 			if (!file) return;
@@ -106,7 +114,7 @@
 				timeline.loadFromJson(text);
 				flashStatus('Loaded!');
 			} catch {
-				alert('Invalid JSON file');
+				alert('Invalid timeline file');
 			}
 		};
 		input.click();
@@ -123,7 +131,7 @@
 			pasteJsonDialog?.close();
 			flashStatus('Loaded!');
 		} catch {
-			alert('Invalid JSON');
+			alert('Invalid timeline file');
 		}
 	}
 
@@ -144,7 +152,7 @@
 	}
 </script>
 
-<div class="flex h-screen flex-col bg-gray-100 overflow-x-hidden">
+<div class="flex h-screen flex-col overflow-x-hidden bg-gray-100">
 	<header class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
 		<div class="flex items-center gap-3">
 			<h1
@@ -186,19 +194,23 @@
 				items={[
 					{ icon: Download, label: 'PNG Image', onclick: () => zoomControls?.exportPng() },
 					{ icon: Copy, label: 'JSON to Clipboard', onclick: exportJsonToClipboard },
-					{ icon: Download, label: 'JSON File', onclick: exportJsonToFile }
+					{ icon: Download, label: 'Timeline File', onclick: exportJsonToFile }
 				]}
 			/>
 			<DropdownMenu
 				triggerLabel="Import"
 				triggerIcon={Upload}
 				items={[
-					{ icon: Upload, label: 'JSON from File', onclick: importJsonFromFile },
-					{ icon: ClipboardPaste, label: 'JSON from Text', onclick: importJsonFromPaste }
+					{ icon: Upload, label: 'Timeline File', onclick: importJsonFromFile },
+					{ icon: ClipboardPaste, label: 'Paste JSON', onclick: importJsonFromPaste }
 				]}
 			/>
 			{#if jsonStatus}
-				<span class="text-[10px] font-medium text-green-600">{jsonStatus}</span>
+				<span
+					class="text-[10px] font-medium {jsonStatusIsError ? 'text-red-600' : 'text-green-600'}"
+				>
+					{jsonStatus}
+				</span>
 			{/if}
 			<button
 				onclick={() => timeConfigDialog?.showModal()}
@@ -279,8 +291,14 @@
 	</dialog>
 
 	<dialog bind:this={pasteJsonDialog} class="w-96 rounded-xl bg-white p-4 shadow-xl">
-		<form method="dialog" class="flex flex-col gap-3">
-			<h3 class="text-sm font-semibold text-gray-900">Import JSON</h3>
+		<form
+			onsubmit={(e) => {
+				e.preventDefault();
+				handlePasteJsonSubmit();
+			}}
+			class="flex flex-col gap-3"
+		>
+			<h3 class="text-sm font-semibold text-gray-900">Import Timeline File</h3>
 			<textarea
 				bind:value={pasteJsonText}
 				class="h-40 w-full resize-none rounded-lg border border-gray-200 p-2 font-mono text-xs text-gray-700 focus:border-blue-500 focus:outline-none"
@@ -296,7 +314,6 @@
 				</button>
 				<button
 					type="submit"
-					onclick={handlePasteJsonSubmit}
 					class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
 				>
 					Import

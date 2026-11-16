@@ -23,16 +23,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install Dependencies
-        run: deno install
+        run: bun install --frozen-lockfile
 
       - name: Build Static Files
-        run: deno task build
+        run: bun run build
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
