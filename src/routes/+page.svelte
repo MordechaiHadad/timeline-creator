@@ -24,6 +24,7 @@
 	import { timeline, type TimelineStatus } from '$lib/state/timeline.svelte';
 	import { theme, type ThemeMode } from '$lib/state/theme.svelte';
 	import type { TimeConfig } from '$lib/types';
+	import { toast } from 'svelte-sonner';
 
 	if (browser) timeline.init(createStorage());
 
@@ -70,8 +71,6 @@
 	}
 
 	let pasteJsonText = $state('');
-	let jsonStatus = $state('');
-	let jsonStatusIsError = $state(false);
 	let zoomControls = $state<{
 		zoomIn: () => void;
 		zoomOut: () => void;
@@ -134,18 +133,12 @@
 		timeConfigDialog?.close();
 	}
 
-	function flashStatus(msg: string, isError = false) {
-		jsonStatus = msg;
-		jsonStatusIsError = isError;
-		setTimeout(() => (jsonStatus = ''), 2000);
-	}
-
 	async function exportJsonToClipboard() {
 		try {
 			await navigator.clipboard.writeText(timeline.exportJson());
-			flashStatus('Copied!');
+			toast.success('Copied timeline to clipboard');
 		} catch {
-			flashStatus('Copy failed', true);
+			toast.error('Could not copy timeline');
 		}
 	}
 
@@ -157,6 +150,7 @@
 		a.download = `${timeline.data.title.replace(/[^a-zA-Z0-9]/g, '_') || 'timeline'}.timeline`;
 		a.click();
 		setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+		toast.success('Timeline exported');
 	}
 
 	function importJsonFromFile() {
@@ -169,9 +163,9 @@
 			try {
 				const text = await file.text();
 				timeline.loadFromJson(text);
-				flashStatus('Loaded!');
+				toast.success('Timeline imported');
 			} catch {
-				alert('Invalid timeline file');
+				toast.error('Invalid timeline file');
 			}
 		};
 		input.click();
@@ -186,9 +180,9 @@
 		try {
 			timeline.loadFromJson(pasteJsonText);
 			pasteJsonDialog?.close();
-			flashStatus('Loaded!');
+			toast.success('Timeline imported');
 		} catch {
-			alert('Invalid timeline file');
+			toast.error('Invalid timeline file');
 		}
 	}
 
@@ -263,15 +257,6 @@
 						{ icon: ClipboardPaste, label: 'Paste JSON', onclick: importJsonFromPaste }
 					]}
 				/>
-			{/if}
-			{#if jsonStatus}
-				<span
-					class="text-[10px] font-medium {jsonStatusIsError
-						? 'text-red-600 dark:text-red-400'
-						: 'text-emerald-600 dark:text-emerald-400'}"
-				>
-					{jsonStatus}
-				</span>
 			{/if}
 			{#if embedded}
 				<span class="text-[10px] font-medium {statusColor(timeline.status)}">

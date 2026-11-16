@@ -2,6 +2,7 @@ import type { TimelineStorage } from '$lib/host/storage';
 import type { TimelineData, TimelineEvent, TimelinePeriod, TimeConfig } from '$lib/types';
 import { DEFAULT_TIME_CONFIG, makeDate } from '$lib/time';
 import { createId, parseState, serializeTimeline, type TimelineState } from '$lib/timeline-file';
+import { toast } from 'svelte-sonner';
 
 export type TimelineStatus =
 	'loading' | 'saved' | 'saving' | 'conflict' | 'save-error' | 'load-error';
@@ -120,21 +121,25 @@ function createTimelineState() {
 		const content = pending;
 		pending = null;
 		saving = true;
+		toast.loading('Saving changes...', { id: 'timeline-save' });
 		const result = await storage.save(content, revision);
 		saving = false;
 		if (result.ok) {
 			lastSaved = content;
 			revision = result.revision;
 			status = 'saved';
+			toast.success('Changes saved', { id: 'timeline-save', duration: 1500 });
 		} else if (result.conflict) {
 			conflictContent = result.conflict.content;
 			conflictRevision = result.conflict.revision;
 			status = 'conflict';
 			suspended = true;
+			toast.warning('This file changed while you were editing.', { id: 'timeline-save' });
 		} else {
 			if (pending === null) pending = content;
 			errorMessage = result.message ?? 'Could not save the file.';
 			status = 'save-error';
+			toast.error(errorMessage, { id: 'timeline-save' });
 			return;
 		}
 		if (pending !== null && !suspended) void flush();
