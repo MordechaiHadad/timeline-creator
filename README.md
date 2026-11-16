@@ -12,6 +12,12 @@ A browser-based tool for creating interactive, customizable timelines with suppo
 - **Persistent State** -- All data auto-saved to localStorage
 - **Collision Avoidance** -- Auto-staggers overlapping labels
 
+## Obsidian embedding
+
+The site can run inside an Obsidian view as an iframe. Append `?embed=obsidian&token=<token>` to the hosted URL and implement the [host protocol](docs/obsidian-plugin-protocol.md). In embed mode the app autosaves every change through the bridge, hides import/export/New, and shows save and conflict state.
+
+For UI work without Obsidian, open `?mockHost=1`. It behaves like an embedded file but stores content in localStorage. During plugin development, point the iframe at `http://localhost:5173/?embed=obsidian&token=<token>`.
+
 ## Getting Started
 
 ```sh

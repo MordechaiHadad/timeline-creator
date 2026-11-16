@@ -1,18 +1,18 @@
+import type { TimelineStorage } from '$lib/host/storage';
 import type { TimelineData, TimelineEvent, TimelinePeriod, TimeConfig } from '$lib/types';
 import { DEFAULT_TIME_CONFIG, makeDate } from '$lib/time';
-import { createId, parseState, serializeState, type TimelineState } from '$lib/timeline-file';
+import { createId, parseState, serializeTimeline, type TimelineState } from '$lib/timeline-file';
 
-const STORAGE_KEY = 'timeline-creator-state';
+export type TimelineStatus =
+	'loading' | 'saved' | 'saving' | 'conflict' | 'save-error' | 'load-error';
 
-function loadState(): TimelineState | null {
-	if (typeof localStorage === 'undefined') return null;
-	try {
-		const raw = localStorage.getItem(STORAGE_KEY);
-		if (!raw) return null;
-		return parseState(raw);
-	} catch {
-		return null;
-	}
+const SAVE_DELAY_MS = 0;
+
+function emptyState(): TimelineState {
+	return {
+		data: { title: 'Untitled Timeline', events: [], periods: [] },
+		timeConfig: { ...DEFAULT_TIME_CONFIG }
+	};
 }
 
 const defaultEvents: TimelineEvent[] = [
@@ -78,27 +78,201 @@ const defaultPeriods: TimelinePeriod[] = [
 ];
 
 function createTimelineState() {
-	const saved = loadState();
+	let data = $state<TimelineData>({
+		title: 'World History Timeline',
+		events: defaultEvents,
+		periods: defaultPeriods
+	});
 
-	let data = $state<TimelineData>(
-		saved?.data ?? {
-			title: 'World History Timeline',
-			events: defaultEvents,
-			periods: defaultPeriods
-		}
-	);
-
-	let timeConfig = $state<TimeConfig>(saved?.timeConfig ?? { ...DEFAULT_TIME_CONFIG });
+	let timeConfig = $state<TimeConfig>({ ...DEFAULT_TIME_CONFIG });
 	let editingEvent = $state<TimelineEvent | null>(null);
 	let editingPeriod = $state<TimelinePeriod | null>(null);
+	let storageKind = $state<'local' | 'host' | 'mock'>('local');
+	let status = $state<TimelineStatus>('loading');
+	let errorMessage = $state('');
+	let conflictContent = $state<string | null>(null);
 
-	function initPersistence() {
-		$effect(() => {
-			const payload = serializeState({ data, timeConfig });
-			if (typeof localStorage !== 'undefined') {
-				localStorage.setItem(STORAGE_KEY, payload);
+	let storage: TimelineStorage | null = null;
+	let initialized = false;
+	let ready = false;
+	let suspended = false;
+	let saving = false;
+	let lastSaved = '';
+	let revision = '';
+	let conflictRevision = '';
+	let pending: string | null = null;
+	let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function currentContent(): string {
+		return serializeTimeline({ data, timeConfig });
+	}
+
+	function applyContent(content: string) {
+		const parsed = parseState(content);
+		data = parsed.data;
+		timeConfig = parsed.timeConfig;
+		editingEvent = null;
+		editingPeriod = null;
+	}
+
+	async function flush() {
+		if (!storage || saving || pending === null) return;
+		const content = pending;
+		pending = null;
+		saving = true;
+		const result = await storage.save(content, revision);
+		saving = false;
+		if (result.ok) {
+			lastSaved = content;
+			revision = result.revision;
+			status = 'saved';
+		} else if (result.conflict) {
+			conflictContent = result.conflict.content;
+			conflictRevision = result.conflict.revision;
+			status = 'conflict';
+			suspended = true;
+		} else {
+			if (pending === null) pending = content;
+			errorMessage = result.message ?? 'Could not save the file.';
+			status = 'save-error';
+			return;
+		}
+		if (pending !== null && !suspended) void flush();
+	}
+
+	function flushNow() {
+		if (saveTimer) {
+			clearTimeout(saveTimer);
+			saveTimer = null;
+		}
+		if (ready && !suspended) {
+			const content = currentContent();
+			if (content !== lastSaved) pending = content;
+		}
+		if (pending !== null) void flush();
+	}
+
+	function init(nextStorage: TimelineStorage) {
+		if (initialized) return;
+		initialized = true;
+		storage = nextStorage;
+		storageKind = nextStorage.kind;
+
+		nextStorage.start({
+			onOpen(content, nextRevision) {
+				revision = nextRevision;
+				try {
+					if (content === null || content.trim() === '') {
+						if (nextStorage.kind === 'local') {
+							data = {
+								title: 'World History Timeline',
+								events: defaultEvents,
+								periods: defaultPeriods
+							};
+							timeConfig = { ...DEFAULT_TIME_CONFIG };
+						} else {
+							const empty = emptyState();
+							data = empty.data;
+							timeConfig = empty.timeConfig;
+						}
+					} else {
+						applyContent(content);
+					}
+				} catch {
+					errorMessage = 'This file is not a valid timeline.';
+					status = 'load-error';
+					suspended = true;
+					return;
+				}
+				lastSaved = currentContent();
+				ready = true;
+				suspended = false;
+				status = 'saved';
+			},
+			onExternalChange(content, nextRevision) {
+				conflictRevision = nextRevision;
+				const incoming = content.trim();
+				const current = currentContent().trim();
+				if (incoming === current) {
+					revision = nextRevision;
+					return;
+				}
+				if (!suspended && current === lastSaved.trim()) {
+					try {
+						applyContent(content);
+						lastSaved = currentContent();
+						revision = nextRevision;
+						status = 'saved';
+					} catch {
+						conflictContent = content;
+						status = 'conflict';
+						suspended = true;
+					}
+					return;
+				}
+				conflictContent = content;
+				status = 'conflict';
+				suspended = true;
+			},
+			onError(message) {
+				errorMessage = message;
+				status = 'load-error';
+				suspended = true;
 			}
 		});
+
+		$effect(() => {
+			const content = currentContent();
+			if (!ready || suspended) return;
+			if (content === lastSaved) return;
+			pending = content;
+			status = 'saving';
+			if (saveTimer) clearTimeout(saveTimer);
+			saveTimer = setTimeout(() => {
+				saveTimer = null;
+				void flush();
+			}, SAVE_DELAY_MS);
+		});
+
+		if (typeof window !== 'undefined') {
+			window.addEventListener('pagehide', flushNow);
+			document.addEventListener('visibilitychange', () => {
+				if (document.visibilityState === 'hidden') flushNow();
+			});
+		}
+	}
+
+	function retrySave() {
+		if (pending === null) return;
+		status = 'saving';
+		void flush();
+	}
+
+	function resolveConflict(action: 'reload' | 'keep') {
+		if (conflictContent === null) return;
+		if (action === 'reload') {
+			try {
+				applyContent(conflictContent);
+				lastSaved = currentContent();
+				revision = conflictRevision;
+				conflictContent = null;
+				pending = null;
+				suspended = false;
+				status = 'saved';
+			} catch {
+				errorMessage = 'The changed file is not a valid timeline.';
+				conflictContent = null;
+				status = 'load-error';
+				suspended = true;
+			}
+			return;
+		}
+		revision = conflictRevision;
+		conflictContent = null;
+		suspended = false;
+		pending = currentContent();
+		status = 'saving';
+		void flush();
 	}
 
 	return {
@@ -113,6 +287,18 @@ function createTimelineState() {
 		},
 		get editingPeriod() {
 			return editingPeriod;
+		},
+		get status() {
+			return status;
+		},
+		get errorMessage() {
+			return errorMessage;
+		},
+		get conflictContent() {
+			return conflictContent;
+		},
+		get embedded() {
+			return storageKind !== 'local';
 		},
 		setTimeConfig(config: TimeConfig) {
 			timeConfig = { ...config };
@@ -133,36 +319,40 @@ function createTimelineState() {
 			data.events = [...data.events, { ...event, id: createId() }];
 		},
 		updateEvent(id: string, updates: Partial<TimelineEvent>) {
-			data.events = data.events.map((e) => (e.id === id ? { ...e, ...updates } : e));
+			data.events = data.events.map((event) =>
+				event.id === id ? { ...event, ...updates } : event
+			);
 		},
 		deleteEvent(id: string) {
-			data.events = data.events.filter((e) => e.id !== id);
+			data.events = data.events.filter((event) => event.id !== id);
 			if (editingEvent?.id === id) editingEvent = null;
 		},
 		addPeriod(period: Omit<TimelinePeriod, 'id'>) {
 			data.periods = [...data.periods, { ...period, id: createId() }];
 		},
 		updatePeriod(id: string, updates: Partial<TimelinePeriod>) {
-			data.periods = data.periods.map((p) => (p.id === id ? { ...p, ...updates } : p));
+			data.periods = data.periods.map((period) =>
+				period.id === id ? { ...period, ...updates } : period
+			);
 		},
 		deletePeriod(id: string) {
-			data.periods = data.periods.filter((p) => p.id !== id);
+			data.periods = data.periods.filter((period) => period.id !== id);
 			if (editingPeriod?.id === id) editingPeriod = null;
 		},
 		setTitle(title: string) {
 			data.title = title;
 		},
 		exportJson(): string {
-			return serializeState({ data, timeConfig });
+			return currentContent();
 		},
 		loadFromJson(json: string): void {
-			const parsed = parseState(json);
-			data = parsed.data;
-			timeConfig = parsed.timeConfig;
-			editingEvent = null;
-			editingPeriod = null;
+			applyContent(json);
+			lastSaved = '';
 		},
-		initPersistence
+		init,
+		retrySave,
+		resolveConflict,
+		flushNow
 	};
 }
 
