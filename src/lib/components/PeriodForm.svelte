@@ -5,14 +5,18 @@
 
 	let {
 		period = null,
+		idPrefix = 'period',
 		timeConfig,
 		onSubmit,
-		onCancel
+		onCancel,
+		onDelete
 	}: {
 		period: TimelinePeriod | null;
+		idPrefix?: string;
 		timeConfig: TimeConfig;
 		onSubmit: (data: { start: Date; end: Date; label: string; color: string }) => void;
 		onCancel: () => void;
+		onDelete: () => void;
 	} = $props();
 
 	let startInput = $state('');
@@ -57,16 +61,16 @@
 </script>
 
 <form onsubmit={handleSubmit} class="flex flex-col gap-3">
-	<h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+	<h3 id={`${idPrefix}-title`} class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
 		{period ? 'Edit Period' : 'Add Period'}
 	</h3>
 
 	<div class="flex flex-col gap-1">
-		<label for="period-start" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+		<label for={`${idPrefix}-start`} class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
 			Start Date ({timeConfig.name} calendar)
 		</label>
 		<input
-			id="period-start"
+			id={`${idPrefix}-start`}
 			type="text"
 			bind:value={startInput}
 			required
@@ -77,11 +81,11 @@
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<label for="period-end" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+		<label for={`${idPrefix}-end`} class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
 			End Date ({timeConfig.name} calendar)
 		</label>
 		<input
-			id="period-end"
+			id={`${idPrefix}-end`}
 			type="text"
 			bind:value={endInput}
 			required
@@ -92,11 +96,11 @@
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<label for="period-label" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+		<label for={`${idPrefix}-label`} class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
 			Label
 		</label>
 		<input
-			id="period-label"
+			id={`${idPrefix}-label`}
 			type="text"
 			bind:value={label}
 			required
@@ -106,12 +110,12 @@
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<label for="period-color" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+		<label for={`${idPrefix}-color`} class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
 			Color
 		</label>
 		<div class="flex items-center gap-2">
 			<input
-				id="period-color"
+				id={`${idPrefix}-color`}
 				type="color"
 				bind:value={color}
 				class="h-8 w-8 cursor-pointer rounded border border-black/10 dark:border-white/10"
@@ -120,10 +124,21 @@
 		</div>
 	</div>
 
-	<div class="flex justify-end gap-2">
-		<button type="button" onclick={onCancel} class="ui-btn">Cancel</button>
-		<button type="submit" class="ui-btn-primary">
-			{period ? 'Update' : 'Add'}
-		</button>
+	<div class="flex items-center justify-between gap-2">
+		{#if period}
+			<button
+				type="button"
+				onclick={onDelete}
+				class="ui-btn text-red-600 hover:text-red-700 dark:text-red-400"
+			>
+				Delete
+			</button>
+		{/if}
+		<div class="ml-auto flex gap-2">
+			<button type="button" onclick={onCancel} class="ui-btn">Cancel</button>
+			<button type="submit" class="ui-btn-primary">
+				{period ? 'Update' : 'Add'}
+			</button>
+		</div>
 	</div>
 </form>

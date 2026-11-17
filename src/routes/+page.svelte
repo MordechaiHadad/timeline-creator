@@ -8,15 +8,12 @@
 		ClipboardPaste,
 		Sun,
 		Moon,
-		Monitor,
-		PanelLeftClose,
-		PanelLeftOpen
+		Monitor
 	} from '@lucide/svelte';
 	import { browser } from '$app/environment';
-	import DropdownMenu from '$lib/components/DropdownMenu.svelte';
-	import Timeline from '$lib/components/Timeline.svelte';
-	import TimelineControls from '$lib/components/TimelineControls.svelte';
-	import TimelineSidebar from '$lib/components/TimelineSidebar.svelte';
+	import type { Component } from 'svelte';
+	import TimelineDesktop from '$lib/components/TimelineDesktop.svelte';
+	import TimelineMobile from '$lib/components/TimelineMobile.svelte';
 	import EventForm from '$lib/components/EventForm.svelte';
 	import PeriodForm from '$lib/components/PeriodForm.svelte';
 	import TimeConfigForm from '$lib/components/TimeConfigForm.svelte';
@@ -45,8 +42,16 @@
 		{ mode: 'system', icon: Monitor, label: 'System theme' }
 	];
 
+	type MenuAction = {
+		icon: Component;
+		label: string;
+		onclick: () => void;
+		section?: string;
+		active?: boolean;
+	};
+
 	let pasteJsonText = $state('');
-	let zoomControls = $state<{
+	let desktopZoomControls = $state<{
 		zoomIn: () => void;
 		zoomOut: () => void;
 		reset: () => void;
@@ -56,6 +61,77 @@
 	let periodDialog = $state<HTMLDialogElement | null>(null);
 	let timeConfigDialog = $state<HTMLDialogElement | null>(null);
 	let pasteJsonDialog = $state<HTMLDialogElement | null>(null);
+
+	const mobileActions = $derived<MenuAction[]>([
+		{
+			icon: Settings,
+			label: 'Time settings',
+			onclick: () => timeConfigDialog?.showModal(),
+			section: 'Timeline'
+		},
+		...(embedded
+			? []
+			: [
+					{
+						icon: FilePlus,
+						label: 'New timeline',
+						onclick: startNewTimeline,
+						section: 'Timeline'
+					}
+				]),
+		{
+			icon: Download,
+			label: 'PNG Image',
+			onclick: () => desktopZoomControls?.exportPng(),
+			section: 'Export'
+		},
+		...(embedded
+			? []
+			: [
+					{
+						icon: Copy,
+						label: 'JSON to Clipboard',
+						onclick: exportJsonToClipboard,
+						section: 'Export'
+					},
+					{ icon: Download, label: 'Timeline File', onclick: exportJsonToFile, section: 'Export' },
+					{
+						icon: Upload,
+						label: 'Import Timeline File',
+						onclick: importJsonFromFile,
+						section: 'Import'
+					},
+					{
+						icon: ClipboardPaste,
+						label: 'Paste JSON',
+						onclick: importJsonFromPaste,
+						section: 'Import'
+					}
+				]),
+		...themeOptions.map((option) => ({
+			icon: option.icon,
+			label: option.label,
+			onclick: () => theme.set(option.mode),
+			section: 'Appearance',
+			active: theme.mode === option.mode
+		}))
+	]);
+
+	function openAddEvent() {
+		timeline.setEditingEvent(null);
+		eventDialog?.showModal();
+	}
+
+	function openAddPeriod() {
+		timeline.setEditingPeriod(null);
+		periodDialog?.showModal();
+	}
+
+	function startNewTimeline() {
+		if (confirm('Clear all events and periods? This cannot be undone.')) {
+			timeline.clearAll();
+		}
+	}
 
 	function handleEventSubmit(data: {
 		date: Date;
@@ -79,7 +155,6 @@
 			});
 		}
 		timeline.setEditingEvent(null);
-		eventDialog?.close();
 	}
 
 	function handlePeriodSubmit(data: { start: Date; end: Date; label: string; color: string }) {
@@ -100,7 +175,18 @@
 			});
 		}
 		timeline.setEditingPeriod(null);
-		periodDialog?.close();
+	}
+
+	function handleEventDelete() {
+		if (!timeline.editingEvent) return;
+		timeline.deleteEvent(timeline.editingEvent.id);
+		timeline.setEditingEvent(null);
+	}
+
+	function handlePeriodDelete() {
+		if (!timeline.editingPeriod) return;
+		timeline.deletePeriod(timeline.editingPeriod.id);
+		timeline.setEditingPeriod(null);
 	}
 
 	function handleTimeConfigSubmit(config: TimeConfig) {
@@ -178,116 +264,7 @@
 	}
 </script>
 
-<div class="flex h-screen flex-col overflow-x-hidden text-zinc-900 dark:text-zinc-100">
-	<header
-		class="relative z-20 flex items-center justify-between gap-3 border-b border-black/10 bg-white/55 px-4 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] dark:border-white/10 dark:bg-zinc-950/55 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-	>
-		<div class="flex min-w-0 items-center gap-2.5">
-			<h1
-				contenteditable={editable}
-				class="-mx-1 max-w-[42vw] truncate rounded px-1 text-sm font-semibold tracking-tight text-zinc-900 outline-none focus:ring-1 focus:ring-indigo-500 dark:text-zinc-100"
-				onblur={(e) => {
-					const text = e.currentTarget.textContent?.trim();
-					if (text) timeline.setTitle(text);
-					else e.currentTarget.textContent = timeline.data.title;
-				}}
-				onkeydown={(e) => {
-					if (e.key === 'Enter') {
-						e.preventDefault();
-						(e.currentTarget as HTMLElement).blur();
-					}
-				}}
-			>
-				{timeline.data.title}
-			</h1>
-			<span class="ui-pill shrink-0">
-				{timeline.data.events.length} events, {timeline.data.periods.length} periods
-			</span>
-		</div>
-
-		<div class="flex items-center gap-1.5">
-			<TimelineControls
-				onZoomIn={() => zoomControls?.zoomIn()}
-				onZoomOut={() => zoomControls?.zoomOut()}
-				onReset={() => zoomControls?.reset()}
-			/>
-			<span class="mx-0.5 h-5 w-px bg-black/10 dark:bg-white/10"></span>
-			<DropdownMenu
-				triggerLabel="Export"
-				triggerIcon={Download}
-				items={embedded
-					? [{ icon: Download, label: 'PNG Image', onclick: () => zoomControls?.exportPng() }]
-					: [
-							{ icon: Download, label: 'PNG Image', onclick: () => zoomControls?.exportPng() },
-							{ icon: Copy, label: 'JSON to Clipboard', onclick: exportJsonToClipboard },
-							{ icon: Download, label: 'Timeline File', onclick: exportJsonToFile }
-						]}
-			/>
-			{#if !embedded}
-				<DropdownMenu
-					triggerLabel="Import"
-					triggerIcon={Upload}
-					items={[
-						{ icon: Upload, label: 'Timeline File', onclick: importJsonFromFile },
-						{ icon: ClipboardPaste, label: 'Paste JSON', onclick: importJsonFromPaste }
-					]}
-				/>
-			{/if}
-			<button onclick={() => timeConfigDialog?.showModal()} class="ui-btn" title="Time settings">
-				<Settings size={14} />
-				{timeline.timeConfig.name}
-			</button>
-			{#if !embedded}
-				<button
-					onclick={() => {
-						if (confirm('Clear all events and periods? This cannot be undone.')) {
-							timeline.clearAll();
-						}
-					}}
-					class="ui-btn"
-					title="New timeline"
-				>
-					<FilePlus size={14} />
-					New
-				</button>
-			{/if}
-			<span class="mx-0.5 h-5 w-px bg-black/10 dark:bg-white/10"></span>
-			<div
-				class="flex items-center gap-0.5 rounded-md border border-black/10 bg-white/60 p-0.5 dark:border-white/10 dark:bg-white/5"
-				role="group"
-				aria-label="Theme"
-			>
-				{#each themeOptions as option (option.mode)}
-					<button
-						onclick={() => theme.set(option.mode)}
-						class="grid size-6 place-items-center rounded transition-colors {theme.mode ===
-						option.mode
-							? 'bg-white text-zinc-900 shadow-sm dark:bg-white/15 dark:text-white'
-							: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-						title={option.label}
-						aria-label={option.label}
-						aria-pressed={theme.mode === option.mode}
-					>
-						<option.icon size={13} />
-					</button>
-				{/each}
-			</div>
-			<button
-				onclick={toggleSidebar}
-				class="ui-btn px-2"
-				title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-				aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-				aria-expanded={!sidebarCollapsed}
-			>
-				{#if sidebarCollapsed}
-					<PanelLeftOpen size={15} />
-				{:else}
-					<PanelLeftClose size={15} />
-				{/if}
-			</button>
-		</div>
-	</header>
-
+<div class="flex h-dvh flex-col overflow-x-hidden text-zinc-900 dark:text-zinc-100">
 	{#if timeline.status === 'conflict' && timeline.conflictContent !== null}
 		<div
 			class="flex items-center justify-between gap-3 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-800 backdrop-blur-xl dark:text-amber-200"
@@ -338,36 +315,53 @@
 			<p class="text-sm text-zinc-500 dark:text-zinc-400">Waiting for Obsidian...</p>
 		</div>
 	{:else}
-		<div class="flex min-h-0 flex-1">
-			<TimelineSidebar
-				data={timeline.data}
-				timeConfig={timeline.timeConfig}
-				collapsed={sidebarCollapsed}
-				onAddEvent={() => {
-					eventDialog?.showModal();
-				}}
-				onAddPeriod={() => {
-					periodDialog?.showModal();
-				}}
-			/>
-
-			<main class="min-w-0 flex-1 p-3">
-				<Timeline
-					data={timeline.data}
-					timeConfig={timeline.timeConfig}
-					onEventClick={handleEventClick}
-					onPeriodClick={handlePeriodClick}
-					bind:zoomRef={zoomControls}
-				/>
-			</main>
-		</div>
+		<TimelineDesktop
+			data={timeline.data}
+			timeConfig={timeline.timeConfig}
+			{editable}
+			{embedded}
+			{sidebarCollapsed}
+			onToggleSidebar={toggleSidebar}
+			onTitleChange={(title) => timeline.setTitle(title)}
+			onSettings={() => timeConfigDialog?.showModal()}
+			onExportPng={() => desktopZoomControls?.exportPng()}
+			onExportJsonToClipboard={exportJsonToClipboard}
+			onExportJsonToFile={exportJsonToFile}
+			onImportJsonFromFile={importJsonFromFile}
+			onImportJsonFromPaste={importJsonFromPaste}
+			onNewTimeline={startNewTimeline}
+			onAddEvent={openAddEvent}
+			onAddPeriod={openAddPeriod}
+			onEventClick={handleEventClick}
+			onPeriodClick={handlePeriodClick}
+			bind:zoomRef={desktopZoomControls}
+		/>
+		<TimelineMobile
+			data={timeline.data}
+			timeConfig={timeline.timeConfig}
+			{editable}
+			actions={mobileActions}
+			onTitleChange={(title) => timeline.setTitle(title)}
+			onEventSubmit={handleEventSubmit}
+			onPeriodSubmit={handlePeriodSubmit}
+			onEventDelete={handleEventDelete}
+			onPeriodDelete={handlePeriodDelete}
+		/>
 	{/if}
 
-	<dialog bind:this={eventDialog} class="ui-panel w-80 p-4">
+	<dialog bind:this={eventDialog} aria-labelledby="desktop-event-title" class="ui-panel w-80 p-4">
 		<EventForm
+			idPrefix="desktop-event"
 			event={timeline.editingEvent}
 			timeConfig={timeline.timeConfig}
-			onSubmit={handleEventSubmit}
+			onSubmit={(data) => {
+				handleEventSubmit(data);
+				eventDialog?.close();
+			}}
+			onDelete={() => {
+				handleEventDelete();
+				eventDialog?.close();
+			}}
 			onCancel={() => {
 				timeline.setEditingEvent(null);
 				eventDialog?.close();
@@ -375,11 +369,19 @@
 		/>
 	</dialog>
 
-	<dialog bind:this={periodDialog} class="ui-panel w-80 p-4">
+	<dialog bind:this={periodDialog} aria-labelledby="desktop-period-title" class="ui-panel w-80 p-4">
 		<PeriodForm
+			idPrefix="desktop-period"
 			period={timeline.editingPeriod}
 			timeConfig={timeline.timeConfig}
-			onSubmit={handlePeriodSubmit}
+			onSubmit={(data) => {
+				handlePeriodSubmit(data);
+				periodDialog?.close();
+			}}
+			onDelete={() => {
+				handlePeriodDelete();
+				periodDialog?.close();
+			}}
 			onCancel={() => {
 				timeline.setEditingPeriod(null);
 				periodDialog?.close();
@@ -387,7 +389,10 @@
 		/>
 	</dialog>
 
-	<dialog bind:this={timeConfigDialog} class="ui-panel w-80 p-4">
+	<dialog
+		bind:this={timeConfigDialog}
+		class="ui-panel fixed inset-x-0 bottom-0 m-0 max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-lg rounded-b-none p-4 lg:inset-0 lg:m-auto lg:max-h-[calc(100dvh-2rem)] lg:w-80 lg:max-w-[calc(100vw-2rem)] lg:rounded-lg"
+	>
 		<TimeConfigForm
 			config={timeline.timeConfig}
 			onSubmit={handleTimeConfigSubmit}
@@ -395,7 +400,10 @@
 		/>
 	</dialog>
 
-	<dialog bind:this={pasteJsonDialog} class="ui-panel w-96 p-4">
+	<dialog
+		bind:this={pasteJsonDialog}
+		class="ui-panel fixed inset-x-0 bottom-0 m-0 max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-lg rounded-b-none p-4 lg:inset-0 lg:m-auto lg:max-h-[calc(100dvh-2rem)] lg:w-96 lg:max-w-[calc(100vw-2rem)] lg:rounded-lg"
+	>
 		<form
 			onsubmit={(e) => {
 				e.preventDefault();

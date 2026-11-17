@@ -5,6 +5,7 @@
 
 	type Props = {
 		autoCloseOnClick?: boolean;
+		ariaPressed?: boolean;
 		class?: string;
 		onselect?: (context: Context) => void;
 		children: Snippet;
@@ -13,6 +14,7 @@
 
 	let {
 		autoCloseOnClick = true,
+		ariaPressed,
 		class: className = '',
 		onselect = () => {},
 		children,
@@ -42,6 +44,7 @@
 <!-- svelte-ignore a11y_mouse_events_have_key_events -->
 <button
 	class={className}
+	aria-pressed={ariaPressed}
 	onclick={handleClick}
 	onmouseover={onHover}
 	onmouseout={onHoverOut}

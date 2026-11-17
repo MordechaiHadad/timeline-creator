@@ -5,14 +5,18 @@
 
 	let {
 		event = null,
+		idPrefix = 'event',
 		timeConfig,
 		onSubmit,
-		onCancel
+		onCancel,
+		onDelete
 	}: {
 		event: TimelineEvent | null;
+		idPrefix?: string;
 		timeConfig: TimeConfig;
 		onSubmit: (data: { date: Date; label: string; description: string; color: string }) => void;
 		onCancel: () => void;
+		onDelete: () => void;
 	} = $props();
 
 	let dateInput = $state('');
@@ -49,16 +53,16 @@
 </script>
 
 <form onsubmit={handleSubmit} class="flex flex-col gap-3">
-	<h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+	<h3 id={`${idPrefix}-title`} class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
 		{event ? 'Edit Event' : 'Add Event'}
 	</h3>
 
 	<div class="flex flex-col gap-1">
-		<label for="event-date" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+		<label for={`${idPrefix}-date`} class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
 			Date ({timeConfig.name} calendar)
 		</label>
 		<input
-			id="event-date"
+			id={`${idPrefix}-date`}
 			type="text"
 			bind:value={dateInput}
 			required
@@ -71,11 +75,11 @@
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<label for="event-label" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+		<label for={`${idPrefix}-label`} class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
 			Label
 		</label>
 		<input
-			id="event-label"
+			id={`${idPrefix}-label`}
 			type="text"
 			bind:value={label}
 			required
@@ -85,11 +89,11 @@
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<label for="event-desc" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+		<label for={`${idPrefix}-desc`} class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
 			Description
 		</label>
 		<textarea
-			id="event-desc"
+			id={`${idPrefix}-desc`}
 			bind:value={description}
 			rows="2"
 			placeholder="Optional description"
@@ -98,12 +102,12 @@
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<label for="event-color" class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+		<label for={`${idPrefix}-color`} class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
 			Color
 		</label>
 		<div class="flex items-center gap-2">
 			<input
-				id="event-color"
+				id={`${idPrefix}-color`}
 				type="color"
 				bind:value={color}
 				class="h-8 w-8 cursor-pointer rounded border border-black/10 dark:border-white/10"
@@ -112,10 +116,21 @@
 		</div>
 	</div>
 
-	<div class="flex justify-end gap-2">
-		<button type="button" onclick={onCancel} class="ui-btn">Cancel</button>
-		<button type="submit" class="ui-btn-primary">
-			{event ? 'Update' : 'Add'}
-		</button>
+	<div class="flex items-center justify-between gap-2">
+		{#if event}
+			<button
+				type="button"
+				onclick={onDelete}
+				class="ui-btn text-red-600 hover:text-red-700 dark:text-red-400"
+			>
+				Delete
+			</button>
+		{/if}
+		<div class="ml-auto flex gap-2">
+			<button type="button" onclick={onCancel} class="ui-btn">Cancel</button>
+			<button type="submit" class="ui-btn-primary">
+				{event ? 'Update' : 'Add'}
+			</button>
+		</div>
 	</div>
 </form>

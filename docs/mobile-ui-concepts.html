@@ -1,0 +1,1996 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Timeline Creator · Small screen concepts</title>
+		<style>
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+			}
+
+			:root {
+				--page-bg: #e9eaee;
+				--page-fg: #17171b;
+				--muted: #6d6d78;
+				--app-bg: #e9eaee;
+				--panel: rgba(255, 255, 255, 0.8);
+				--panel-solid: #ffffff;
+				--line: rgba(0, 0, 0, 0.1);
+				--text: #18181b;
+				--text-soft: #71717a;
+				--accent: #4f46e5;
+				--accent-strong: #4f46e5;
+				--accent-soft: rgba(79, 70, 229, 0.12);
+				--glass: rgba(255, 255, 255, 0.8);
+				--field: rgba(255, 255, 255, 0.7);
+				--btn-bg: rgba(255, 255, 255, 0.6);
+				--header-bg: rgba(255, 255, 255, 0.55);
+				--pill-bg: rgba(0, 0, 0, 0.05);
+				--chip: rgba(255, 255, 255, 0.72);
+				--chip-border: rgba(18, 18, 24, 0.1);
+				--dot-ring: #ffffff;
+				--axis: #b6b7c0;
+				--shadow: rgba(20, 20, 30, 0.18);
+			}
+
+			body.dark {
+				--page-bg: #0a0a0d;
+				--page-fg: #f3f3f6;
+				--muted: #a0a0ac;
+				--app-bg: #0a0a0d;
+				--panel: rgba(255, 255, 255, 0.04);
+				--panel-solid: #18181b;
+				--line: rgba(255, 255, 255, 0.1);
+				--text: #f4f4f5;
+				--text-soft: #a1a1aa;
+				--accent: #a5b4fc;
+				--accent-strong: #4f46e5;
+				--accent-soft: rgba(99, 102, 241, 0.2);
+				--glass: rgba(24, 24, 27, 0.9);
+				--field: rgba(255, 255, 255, 0.05);
+				--btn-bg: rgba(255, 255, 255, 0.05);
+				--header-bg: rgba(9, 9, 11, 0.55);
+				--pill-bg: rgba(255, 255, 255, 0.05);
+				--chip: rgba(255, 255, 255, 0.06);
+				--chip-border: rgba(255, 255, 255, 0.1);
+				--dot-ring: #0a0a0d;
+				--axis: #5c5c69;
+				--shadow: rgba(0, 0, 0, 0.5);
+			}
+
+			html {
+				-webkit-text-size-adjust: 100%;
+			}
+
+			body {
+				margin: 0;
+				min-height: 100vh;
+				font-family:
+					ui-sans-serif,
+					system-ui,
+					-apple-system,
+					'Segoe UI',
+					Roboto,
+					Helvetica,
+					Arial,
+					sans-serif;
+				background:
+					radial-gradient(1100px 560px at 50% -22%, rgba(255, 255, 255, 0.95), transparent 68%),
+					var(--page-bg);
+				color: var(--page-fg);
+				-webkit-font-smoothing: antialiased;
+			}
+
+			body.dark {
+				background:
+					radial-gradient(1100px 560px at 50% -22%, rgba(255, 255, 255, 0.05), transparent 68%),
+					var(--page-bg);
+			}
+
+			button {
+				font: inherit;
+				cursor: pointer;
+			}
+
+			button:focus-visible,
+			input:focus-visible,
+			textarea:focus-visible {
+				outline: 2px solid var(--accent);
+				outline-offset: 2px;
+			}
+
+			.page-head {
+				display: flex;
+				align-items: flex-end;
+				justify-content: space-between;
+				gap: 24px;
+				flex-wrap: wrap;
+				max-width: 1760px;
+				margin: 0 auto;
+				padding: 52px 28px 34px;
+			}
+
+			.eyebrow {
+				margin: 0 0 8px;
+				font-size: 10px;
+				font-weight: 700;
+				letter-spacing: 0.18em;
+				text-transform: uppercase;
+				color: var(--accent);
+			}
+
+			.page-head h1 {
+				margin: 0 0 10px;
+				font-size: clamp(28px, 4vw, 44px);
+				font-weight: 700;
+				letter-spacing: -0.035em;
+				line-height: 1.05;
+			}
+
+			.lede {
+				margin: 0;
+				max-width: 660px;
+				font-size: 13.5px;
+				line-height: 1.6;
+				color: var(--muted);
+			}
+
+			.page-toggle {
+				height: 34px;
+				padding: 0 16px;
+				border-radius: 99px;
+				border: 1px solid var(--line);
+				background: var(--panel);
+				color: var(--text);
+				font-size: 12px;
+				font-weight: 600;
+				transition:
+					background 0.15s ease,
+					color 0.15s ease;
+			}
+
+			.page-toggle:hover {
+				background: var(--panel-solid);
+			}
+
+			.gallery {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+				gap: 60px 36px;
+				max-width: 1760px;
+				margin: 0 auto;
+				padding: 10px 28px 90px;
+			}
+
+			.concept {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+
+			.concept-head {
+				display: flex;
+				align-items: flex-start;
+				gap: 12px;
+				width: 100%;
+				max-width: 380px;
+				margin: 0 auto 18px;
+			}
+
+			.concept-index {
+				font-size: 30px;
+				font-weight: 700;
+				letter-spacing: -0.05em;
+				line-height: 0.85;
+				color: var(--page-fg);
+				opacity: 0.16;
+			}
+
+			.concept-head h2 {
+				margin: 0 0 5px;
+				font-size: 14px;
+				font-weight: 650;
+				letter-spacing: -0.01em;
+			}
+
+			.concept-head p {
+				margin: 0;
+				font-size: 12px;
+				line-height: 1.5;
+				color: var(--muted);
+			}
+
+			.concept-notes {
+				display: flex;
+				flex-direction: column;
+				gap: 7px;
+				width: 100%;
+				max-width: 380px;
+				margin: 18px auto 0;
+				padding: 0;
+				list-style: none;
+			}
+
+			.concept-notes li {
+				position: relative;
+				padding-left: 16px;
+				font-size: 12px;
+				line-height: 1.5;
+				color: var(--muted);
+			}
+
+			.concept-notes li::before {
+				content: '';
+				position: absolute;
+				top: 7px;
+				left: 2px;
+				width: 5px;
+				height: 5px;
+				border-radius: 99px;
+				background: var(--accent);
+				opacity: 0.65;
+			}
+
+			.phone {
+				position: relative;
+				width: 380px;
+				max-width: 100%;
+				height: 800px;
+				padding: 9px;
+				border-radius: 48px;
+				background: linear-gradient(155deg, #2f2f37, #0d0d10 52%, #26262d);
+				box-shadow:
+					0 44px 90px -36px rgba(10, 10, 20, 0.55),
+					0 8px 24px -10px rgba(10, 10, 20, 0.35),
+					inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+			}
+
+			.phone::after {
+				content: '';
+				position: absolute;
+				top: 16px;
+				left: 50%;
+				width: 104px;
+				height: 25px;
+				border-radius: 20px;
+				background: #08080a;
+				transform: translateX(-50%);
+				z-index: 6;
+			}
+
+			.screen {
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				height: 100%;
+				overflow: hidden;
+				border-radius: 40px;
+				background:
+					radial-gradient(1000px 520px at 50% -24%, #ffffff, transparent 70%), var(--app-bg);
+				color: var(--text);
+			}
+
+			body.dark .screen {
+				background:
+					radial-gradient(1000px 520px at 50% -24%, rgba(255, 255, 255, 0.05), transparent 70%),
+					var(--app-bg);
+			}
+
+			.statusbar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 14px 22px 6px;
+				font-size: 11px;
+				font-weight: 600;
+				letter-spacing: 0.01em;
+			}
+
+			.sb-icons {
+				display: flex;
+				align-items: center;
+				gap: 5px;
+			}
+
+			.sb-icons .icon {
+				width: 13px;
+				height: 13px;
+			}
+
+			.mobile-head {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+				padding: 8px 14px 10px;
+				border-bottom: 1px solid var(--line);
+				background: var(--header-bg);
+				box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+				backdrop-filter: blur(20px);
+			}
+
+			body.dark .mobile-head {
+				box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+			}
+
+			.head-title {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				min-width: 0;
+			}
+
+			.head-title h3 {
+				margin: 0;
+				overflow: hidden;
+				font-size: 14px;
+				font-weight: 600;
+				letter-spacing: -0.01em;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.count-pill {
+				flex-shrink: 0;
+				padding: 2px 6px;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				background: var(--pill-bg);
+				color: var(--text-soft);
+				font-size: 10px;
+				font-weight: 500;
+				white-space: nowrap;
+			}
+
+			.icon {
+				display: block;
+				width: 16px;
+				height: 16px;
+				fill: none;
+				stroke: currentColor;
+				stroke-width: 1.8;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+
+			.icon-fill {
+				fill: currentColor;
+				stroke: none;
+			}
+
+			.icon-btn {
+				display: grid;
+				flex-shrink: 0;
+				place-items: center;
+				width: 32px;
+				height: 32px;
+				padding: 0;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				background: var(--btn-bg);
+				color: var(--text-soft);
+				transition:
+					color 0.15s ease,
+					background 0.15s ease;
+			}
+
+			.icon-btn:hover {
+				background: var(--panel-solid);
+				color: var(--text);
+			}
+
+			.icon-btn.danger {
+				color: #dc2626;
+				background: rgba(220, 38, 38, 0.08);
+				border-color: rgba(220, 38, 38, 0.2);
+			}
+
+			.btn {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				gap: 6px;
+				height: 32px;
+				padding: 0 8px;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				background: var(--btn-bg);
+				color: var(--text-soft);
+				font-size: 12px;
+				font-weight: 500;
+				white-space: nowrap;
+			}
+
+			.btn:hover {
+				background: var(--panel-solid);
+				color: var(--text);
+			}
+
+			.btn .icon {
+				width: 13px;
+				height: 13px;
+			}
+
+			.btn-primary {
+				border-color: transparent;
+				background: var(--accent-strong);
+				color: #ffffff;
+			}
+
+			.btn-primary:hover {
+				background: #6366f1;
+				color: #ffffff;
+			}
+
+			.btn-ghost {
+				border-color: transparent;
+				background: transparent;
+				color: var(--text-soft);
+			}
+
+			.grabber {
+				flex-shrink: 0;
+				width: 38px;
+				height: 4px;
+				margin: 0 auto;
+				padding: 0;
+				border: 0;
+				border-radius: 99px;
+				background: var(--line);
+			}
+
+			.toast {
+				position: absolute;
+				left: 50%;
+				bottom: 26px;
+				z-index: 30;
+				max-width: 80%;
+				padding: 8px 14px;
+				border-radius: 99px;
+				background: #17171b;
+				color: #f7f7fa;
+				font-size: 11.5px;
+				font-weight: 600;
+				white-space: nowrap;
+				opacity: 0;
+				pointer-events: none;
+				transform: translate(-50%, 16px);
+				transition:
+					opacity 0.2s ease,
+					transform 0.2s ease;
+			}
+
+			body.dark .toast {
+				background: #f3f3f6;
+				color: #17171b;
+			}
+
+			.toast.show {
+				opacity: 1;
+				transform: translate(-50%, 0);
+			}
+
+			.tl-wrap {
+				position: relative;
+				flex: 1;
+				min-height: 0;
+				padding: 12px;
+				overflow: hidden;
+			}
+
+			.tl-card {
+				position: relative;
+				height: 100%;
+				overflow: hidden;
+				border: 1px solid var(--line);
+				border-radius: 8px;
+				background: rgba(255, 255, 255, 0.6);
+				box-shadow:
+					inset 0 1px 0 rgba(255, 255, 255, 0.8),
+					0 18px 50px rgba(20, 20, 30, 0.08);
+				backdrop-filter: blur(24px);
+			}
+
+			body.dark .tl-card {
+				background: rgba(255, 255, 255, 0.04);
+				box-shadow:
+					inset 0 1px 0 rgba(255, 255, 255, 0.06),
+					0 24px 60px rgba(0, 0, 0, 0.4);
+			}
+
+			.tl-scroll {
+				height: 100%;
+				overflow-x: auto;
+				overflow-y: hidden;
+				scrollbar-width: none;
+				overscroll-behavior-x: contain;
+			}
+
+			.tl-scroll::-webkit-scrollbar {
+				display: none;
+			}
+
+			.tl-canvas {
+				display: flex;
+				align-items: center;
+				width: 780px;
+				height: 100%;
+			}
+
+			.tl-chart {
+				position: relative;
+				flex-shrink: 0;
+				width: 100%;
+				height: 176px;
+			}
+
+			.tl-period {
+				position: absolute;
+				top: 6px;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 1px;
+				height: 34px;
+				overflow: hidden;
+				padding: 0 6px;
+				border: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+				border-radius: 5px;
+				background: color-mix(in srgb, var(--c) 14%, transparent);
+				color: var(--c);
+				font-size: 11px;
+				font-weight: 600;
+				line-height: 1.15;
+				text-align: center;
+				white-space: nowrap;
+			}
+
+			.tl-period small {
+				font-size: 9px;
+				font-weight: 400;
+				line-height: 1.1;
+				opacity: 0.75;
+			}
+
+			.tl-event {
+				position: absolute;
+				top: 58px;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				padding: 0;
+				border: 0;
+				background: none;
+				transform: translateX(-50%);
+			}
+
+			.tl-connector {
+				width: 1px;
+				height: 16px;
+				border-left: 1px dashed var(--c);
+				opacity: 0.65;
+			}
+
+			.tl-dot {
+				width: 11px;
+				height: 11px;
+				border-radius: 99px;
+				background: var(--c);
+				box-shadow: 0 0 0 2px var(--dot-ring);
+				transition: box-shadow 0.15s ease;
+			}
+
+			.tl-banner {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 1px;
+				min-width: 64px;
+				min-height: 34px;
+				margin-top: 6px;
+				padding: 3px 10px;
+				border: 1px solid var(--chip-border);
+				border-radius: 4px;
+				background: var(--chip);
+				white-space: nowrap;
+				backdrop-filter: blur(8px);
+			}
+
+			.tl-banner strong {
+				font-size: 12px;
+				font-weight: 600;
+				line-height: 1.15;
+				color: var(--text);
+			}
+
+			.tl-banner small {
+				font-size: 9px;
+				font-weight: 400;
+				line-height: 1.15;
+				color: var(--text-soft);
+			}
+
+			.tl-event[data-stagger='1'] .tl-banner {
+				transform: translateY(40px);
+			}
+
+			.tl-event:hover .tl-dot,
+			.tl-event.is-selected .tl-dot {
+				box-shadow:
+					0 0 0 2px var(--dot-ring),
+					0 0 0 5px var(--accent-soft);
+			}
+
+			.tl-event.is-selected .tl-banner {
+				border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+				box-shadow: 0 0 0 2px var(--accent-soft);
+			}
+
+			.tl-axis {
+				position: absolute;
+				top: 52px;
+				right: 3%;
+				left: 3%;
+				height: 1px;
+				background: var(--axis);
+			}
+
+			.tl-tick {
+				position: absolute;
+				top: 62px;
+				font-size: 11px;
+				font-weight: 600;
+				color: var(--text-soft);
+				transform: translateX(-50%);
+			}
+
+			.tl-tick::before {
+				content: '';
+				position: absolute;
+				top: -10px;
+				left: 50%;
+				width: 1px;
+				height: 6px;
+				background: var(--axis);
+			}
+
+			.zoom-stack {
+				position: absolute;
+				right: 20px;
+				bottom: 78px;
+				z-index: 4;
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				background: var(--btn-bg);
+				box-shadow: 0 8px 24px -12px var(--shadow);
+				backdrop-filter: blur(18px);
+			}
+
+			.zoom-btn {
+				display: grid;
+				place-items: center;
+				width: 32px;
+				height: 32px;
+				padding: 0;
+				border: 0;
+				border-bottom: 1px solid var(--line);
+				background: transparent;
+				color: var(--text-soft);
+			}
+
+			.zoom-btn:last-child {
+				border-bottom: 0;
+			}
+
+			.zoom-btn:hover {
+				background: var(--panel-solid);
+				color: var(--text);
+			}
+
+			.zoom-btn .icon {
+				width: 14px;
+				height: 14px;
+			}
+
+			.fab {
+				position: absolute;
+				right: 22px;
+				bottom: 24px;
+				z-index: 5;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				gap: 5px;
+				height: 34px;
+				padding: 0 12px;
+				border: 1px solid transparent;
+				border-radius: 6px;
+				background: var(--accent-strong);
+				color: #ffffff;
+				font-size: 12px;
+				font-weight: 500;
+				box-shadow: 0 12px 26px -14px rgba(79, 70, 229, 0.9);
+				transition:
+					opacity 0.2s ease,
+					transform 0.2s ease;
+			}
+
+			.fab:hover {
+				background: #6366f1;
+			}
+
+			.fab .icon {
+				width: 14px;
+				height: 14px;
+				stroke-width: 2;
+			}
+
+			.field {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+				min-width: 0;
+			}
+
+			.field > span {
+				font-size: 12px;
+				font-weight: 500;
+				color: var(--text-soft);
+			}
+
+			.field input,
+			.field textarea {
+				width: 100%;
+				padding: 6px 12px;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				background: var(--field);
+				color: var(--text);
+				font: inherit;
+				font-size: 14px;
+				outline: none;
+			}
+
+			.field input::placeholder,
+			.field textarea::placeholder {
+				color: var(--text-soft);
+				opacity: 0.7;
+			}
+
+			.field textarea {
+				height: 58px;
+				resize: none;
+				line-height: 1.45;
+			}
+
+			.field input:focus,
+			.field textarea:focus {
+				border-color: var(--accent-strong);
+				box-shadow: 0 0 0 3px var(--accent-soft);
+			}
+
+			.field small {
+				font-size: 10px;
+				color: var(--text-soft);
+				opacity: 0.8;
+			}
+
+			.color-control {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+
+			.color-input {
+				width: 32px;
+				height: 32px;
+				padding: 0;
+				border: 1px solid var(--line);
+				border-radius: 4px;
+				background: var(--c);
+			}
+
+			.color-hex {
+				font-size: 12px;
+				color: var(--text-soft);
+			}
+
+			.view-switch {
+				display: flex;
+				gap: 2px;
+				margin: 0 14px 10px;
+				padding: 2px;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				background: var(--btn-bg);
+			}
+
+			.seg-btn {
+				display: flex;
+				flex: 1;
+				align-items: center;
+				justify-content: center;
+				gap: 5px;
+				height: 28px;
+				padding: 0;
+				border: 0;
+				border-radius: 4px;
+				background: transparent;
+				color: var(--text-soft);
+				font-size: 12px;
+				font-weight: 500;
+			}
+
+			.seg-btn.is-active {
+				background: var(--panel-solid);
+				color: var(--text);
+				box-shadow: 0 1px 4px var(--shadow);
+			}
+
+			.seg-btn .icon {
+				width: 13px;
+				height: 13px;
+			}
+
+			.agenda {
+				flex: 1;
+				min-height: 0;
+				overflow-y: auto;
+				padding: 0 14px 24px;
+				scrollbar-width: none;
+			}
+
+			.agenda::-webkit-scrollbar {
+				display: none;
+			}
+
+			.agenda-period {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				margin: 10px 0 2px;
+				padding: 6px 10px;
+				color: var(--text);
+			}
+
+			.agenda-period .bar {
+				flex-shrink: 0;
+				width: 10px;
+				height: 10px;
+				border-radius: 3px;
+				background: var(--c);
+			}
+
+			.agenda-period strong {
+				display: block;
+				font-size: 12px;
+				font-weight: 500;
+			}
+
+			.agenda-period small {
+				display: block;
+				margin-top: 1px;
+				font-size: 10px;
+				color: var(--text-soft);
+			}
+
+			.agenda-year {
+				margin: 14px 0 4px 4px;
+				font-size: 10px;
+				font-weight: 700;
+				letter-spacing: 0.12em;
+				text-transform: uppercase;
+				color: var(--text-soft);
+			}
+
+			.agenda-row {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				width: 100%;
+				padding: 8px 10px;
+				border: 1px solid transparent;
+				border-radius: 6px;
+				background: transparent;
+				color: var(--text);
+				text-align: left;
+				transition:
+					background 0.15s ease,
+					border-color 0.15s ease;
+			}
+
+			.agenda-row:hover,
+			.agenda-row.is-selected {
+				border-color: var(--line);
+				background: var(--panel);
+			}
+
+			.agenda-dot {
+				flex-shrink: 0;
+				width: 10px;
+				height: 10px;
+				border-radius: 99px;
+				background: var(--c);
+			}
+
+			.agenda-body {
+				flex: 1;
+				min-width: 0;
+			}
+
+			.agenda-body strong {
+				display: block;
+				overflow: hidden;
+				font-size: 12px;
+				font-weight: 500;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.agenda-body small {
+				display: block;
+				margin-top: 1px;
+				font-size: 10px;
+				color: var(--text-soft);
+			}
+
+			.agenda-row .icon {
+				flex-shrink: 0;
+				width: 13px;
+				height: 13px;
+				color: var(--text-soft);
+				opacity: 0.6;
+			}
+
+			.mini-tl {
+				position: relative;
+				height: 176px;
+				margin: 10px 12px 0;
+				overflow: hidden;
+				border: 1px solid var(--line);
+				border-radius: 8px;
+				background: rgba(255, 255, 255, 0.6);
+				box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+				backdrop-filter: blur(24px);
+			}
+
+			body.dark .mini-tl {
+				background: rgba(255, 255, 255, 0.04);
+				box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+			}
+
+			.mini-period {
+				position: absolute;
+				top: 10px;
+				height: 34px;
+				border: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+				border-radius: 5px;
+				background: color-mix(in srgb, var(--c) 14%, transparent);
+			}
+
+			.mini-period.is-selected {
+				border-color: var(--accent-strong);
+				box-shadow: 0 0 0 2px var(--accent-soft);
+			}
+
+			.mini-dot {
+				position: absolute;
+				top: 74px;
+				width: 11px;
+				height: 11px;
+				border-radius: 99px;
+				background: var(--c);
+				box-shadow: 0 0 0 2px var(--dot-ring);
+				transform: translateX(-50%);
+			}
+
+			.mini-dot.low {
+				top: 104px;
+			}
+
+			.mini-axis {
+				position: absolute;
+				top: 62px;
+				right: 14px;
+				left: 14px;
+				height: 1px;
+				background: var(--axis);
+			}
+
+			.mini-tick {
+				position: absolute;
+				top: 72px;
+				font-size: 11px;
+				font-weight: 600;
+				color: var(--text-soft);
+				transform: translateX(-50%);
+			}
+
+			.mini-tick::before {
+				content: '';
+				position: absolute;
+				top: -10px;
+				left: 50%;
+				width: 1px;
+				height: 6px;
+				background: var(--axis);
+			}
+
+			.editor {
+				position: absolute;
+				top: 225px;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				z-index: 12;
+				display: flex;
+				flex-direction: column;
+				border-top: 1px solid var(--line);
+				border-radius: 8px 8px 0 0;
+				background: var(--glass);
+				box-shadow: 0 -24px 60px -26px var(--shadow);
+				transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.2, 1);
+				backdrop-filter: blur(30px);
+			}
+
+			.screen:not(.editor-open) .editor {
+				transform: translateY(calc(100% + 24px));
+			}
+
+			.screen.editor-open .fab {
+				opacity: 0;
+				pointer-events: none;
+				transform: scale(0.85);
+			}
+
+			.screen.editor-open .mini-tl,
+			.screen.editor-open .mobile-head {
+				opacity: 0.65;
+				filter: blur(0.6px);
+			}
+
+			.mini-tl,
+			.screen .mobile-head {
+				transition:
+					opacity 0.25s ease,
+					filter 0.25s ease;
+			}
+
+			.editor-top {
+				padding: 8px 0 4px;
+			}
+
+			.editor-head {
+				display: flex;
+				align-items: flex-start;
+				justify-content: space-between;
+				gap: 10px;
+				padding: 0 18px 12px;
+			}
+
+			.editor-head h3 {
+				margin: 3px 0 0;
+				font-size: 14px;
+				font-weight: 600;
+				letter-spacing: -0.01em;
+			}
+
+			.editor-head-actions {
+				display: flex;
+				gap: 6px;
+			}
+
+			.editor-body {
+				display: flex;
+				flex: 1;
+				flex-direction: column;
+				gap: 13px;
+				min-height: 0;
+				overflow-y: auto;
+				padding: 0 18px 18px;
+				scrollbar-width: none;
+			}
+
+			.editor-body::-webkit-scrollbar {
+				display: none;
+			}
+
+			.editor-foot {
+				display: flex;
+				justify-content: flex-end;
+				gap: 8px;
+				padding: 12px 18px 18px;
+				border-top: 1px solid var(--line);
+				background: var(--glass);
+			}
+
+			.footnote {
+				max-width: 760px;
+				margin: 0 auto;
+				padding: 0 28px 56px;
+				font-size: 11.5px;
+				line-height: 1.6;
+				color: var(--muted);
+				text-align: center;
+			}
+
+			@media (max-width: 460px) {
+				.page-head {
+					padding: 32px 16px 24px;
+				}
+
+				.gallery {
+					grid-template-columns: minmax(0, 1fr);
+					gap: 46px;
+					padding: 0 12px 60px;
+				}
+
+				.phone {
+					height: 770px;
+					padding: 7px;
+					border-radius: 40px;
+				}
+
+				.screen {
+					border-radius: 33px;
+				}
+
+				.phone::after {
+					top: 13px;
+					width: 92px;
+					height: 22px;
+				}
+
+				.footnote {
+					padding: 0 16px 40px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+			<symbol id="i-plus" viewBox="0 0 24 24">
+				<path d="M12 5v14M5 12h14" />
+			</symbol>
+			<symbol id="i-chevron-right" viewBox="0 0 24 24">
+				<path d="m9 18 6-6-6-6" />
+			</symbol>
+			<symbol id="i-more" viewBox="0 0 24 24">
+				<circle class="icon-fill" cx="12" cy="5" r="1.6" />
+				<circle class="icon-fill" cx="12" cy="12" r="1.6" />
+				<circle class="icon-fill" cx="12" cy="19" r="1.6" />
+			</symbol>
+			<symbol id="i-pencil" viewBox="0 0 24 24">
+				<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+				<path d="m15 5 4 4" />
+			</symbol>
+			<symbol id="i-trash" viewBox="0 0 24 24">
+				<path d="M3 6h18" />
+				<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+				<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+				<path d="M10 11v6M14 11v6" />
+			</symbol>
+			<symbol id="i-zoom-in" viewBox="0 0 24 24">
+				<circle cx="11" cy="11" r="7" />
+				<path d="m21 21-4.3-4.3M11 8v6M8 11h6" />
+			</symbol>
+			<symbol id="i-zoom-out" viewBox="0 0 24 24">
+				<circle cx="11" cy="11" r="7" />
+				<path d="m21 21-4.3-4.3M8 11h6" />
+			</symbol>
+			<symbol id="i-reset" viewBox="0 0 24 24">
+				<path d="M3 12a9 9 0 1 0 2.64-6.36L3 8" />
+				<path d="M3 3v5h5" />
+			</symbol>
+			<symbol id="i-x" viewBox="0 0 24 24">
+				<path d="M18 6 6 18M6 6l12 12" />
+			</symbol>
+			<symbol id="i-list" viewBox="0 0 24 24">
+				<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+			</symbol>
+			<symbol id="i-map" viewBox="0 0 24 24">
+				<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z" />
+				<path d="M9 3v15M15 6v15" />
+			</symbol>
+			<symbol id="i-signal" viewBox="0 0 24 24">
+				<path d="M4 18v-3M9 18v-6M14 18v-9M19 18V6" />
+			</symbol>
+			<symbol id="i-wifi" viewBox="0 0 24 24">
+				<path d="M2 8a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0" />
+				<path d="M12 19h.01" />
+			</symbol>
+			<symbol id="i-battery" viewBox="0 0 24 24">
+				<rect x="2" y="7" width="17" height="10" rx="2.5" />
+				<path d="M22 10v4" />
+				<rect class="icon-fill" x="4.5" y="9.5" width="11" height="5" rx="1" />
+			</symbol>
+		</svg>
+
+		<header class="page-head">
+			<div>
+				<p class="eyebrow">Timeline Creator</p>
+				<h1>Small screen concepts</h1>
+				<p class="lede">
+					The chosen direction: two views, one editor, drawn at 380 × 800. Canvas is for comparing
+					dates, Agenda is for reading, and every edit, event or period, uses the same sheet. Tap
+					dots and rows, open the sheets, and switch themes.
+				</p>
+			</div>
+			<button class="page-toggle" data-theme-toggle>Dark mode</button>
+		</header>
+
+		<main class="gallery">
+			<section class="concept">
+				<div class="concept-head">
+					<span class="concept-index">01</span>
+					<div>
+						<h2>Canvas with peek sheet</h2>
+						<p>View first. The map stays put while a sheet previews whatever you tap.</p>
+					</div>
+				</div>
+
+				<div class="phone">
+					<div class="screen" id="screen-canvas">
+						<div class="statusbar">
+							<span>9:41</span>
+							<span class="sb-icons">
+								<svg class="icon" aria-hidden="true"><use href="#i-signal" /></svg>
+								<svg class="icon" aria-hidden="true"><use href="#i-wifi" /></svg>
+								<svg class="icon" aria-hidden="true"><use href="#i-battery" /></svg>
+							</span>
+						</div>
+
+						<header class="mobile-head">
+							<div class="head-title">
+								<h3>History of spaceflight</h3>
+								<span class="count-pill">8 events, 3 periods</span>
+							</div>
+							<button class="icon-btn" aria-label="Timeline options">
+								<svg class="icon" aria-hidden="true"><use href="#i-more" /></svg>
+							</button>
+						</header>
+
+						<div class="tl-wrap">
+							<div class="tl-card">
+								<div class="tl-scroll">
+									<div class="tl-canvas">
+										<div class="tl-chart">
+											<div class="tl-period" style="left: 4%; width: 22%; --c: #818cf8">
+												<span>Space Race</span><small>1957 to 1975</small>
+											</div>
+											<div class="tl-period" style="left: 31%; width: 34%; --c: #34d399">
+												<span>Shuttle era</span><small>1981 to 2011</small>
+											</div>
+											<div class="tl-period" style="left: 68%; width: 28%; --c: #fbbf24">
+												<span>Commercial era</span><small>2012 to now</small>
+											</div>
+
+											<button
+												class="tl-event"
+												data-item
+												data-label="Sputnik 1"
+												data-date="Oct 4, 1957"
+												data-kicker="Event · 1957"
+												data-desc="First artificial satellite. A 58 cm sphere that opened the Space Race."
+												data-color="#94a3b8"
+												data-date-input="1957-10-04"
+												style="left: 6%; --c: #94a3b8"
+											>
+												<span class="tl-connector"></span>
+												<span class="tl-dot"></span>
+												<span class="tl-banner"
+													><strong>Sputnik 1</strong><small>Oct 4, 1957</small></span
+												>
+											</button>
+
+											<button
+												class="tl-event"
+												data-stagger="1"
+												data-item
+												data-label="Gagarin"
+												data-date="Apr 12, 1961"
+												data-kicker="Event · 1961"
+												data-desc="First human in space. One orbit of Earth in 108 minutes."
+												data-color="#38bdf8"
+												data-date-input="1961-04-12"
+												style="left: 11%; --c: #38bdf8"
+											>
+												<span class="tl-connector"></span>
+												<span class="tl-dot"></span>
+												<span class="tl-banner"
+													><strong>Gagarin</strong><small>Apr 12, 1961</small></span
+												>
+											</button>
+
+											<button
+												class="tl-event is-selected"
+												data-item
+												data-label="Apollo 11"
+												data-date="Jul 20, 1969"
+												data-kicker="Event · 1969"
+												data-desc="First crewed Moon landing. Armstrong and Aldrin walk on the Sea of Tranquility."
+												data-color="#6366f1"
+												data-date-input="1969-07-20"
+												style="left: 20%; --c: #6366f1"
+											>
+												<span class="tl-connector"></span>
+												<span class="tl-dot"></span>
+												<span class="tl-banner"
+													><strong>Apollo 11</strong><small>Jul 20, 1969</small></span
+												>
+											</button>
+
+											<button
+												class="tl-event"
+												data-stagger="1"
+												data-item
+												data-label="Voyager 1"
+												data-date="Sep 5, 1977"
+												data-kicker="Event · 1977"
+												data-desc="Grand Tour probe, now the farthest human-made object from Earth."
+												data-color="#10b981"
+												data-date-input="1977-09-05"
+												style="left: 29%; --c: #10b981"
+											>
+												<span class="tl-connector"></span>
+												<span class="tl-dot"></span>
+												<span class="tl-banner"
+													><strong>Voyager 1</strong><small>Sep 5, 1977</small></span
+												>
+											</button>
+
+											<button
+												class="tl-event"
+												data-item
+												data-label="Hubble"
+												data-date="Apr 24, 1990"
+												data-kicker="Event · 1990"
+												data-desc="Space telescope that changed how we see the universe."
+												data-color="#f59e0b"
+												data-date-input="1990-04-24"
+												style="left: 44%; --c: #f59e0b"
+											>
+												<span class="tl-connector"></span>
+												<span class="tl-dot"></span>
+												<span class="tl-banner"
+													><strong>Hubble</strong><small>Apr 24, 1990</small></span
+												>
+											</button>
+
+											<button
+												class="tl-event"
+												data-item
+												data-label="ISS"
+												data-date="Nov 20, 1998"
+												data-kicker="Event · 1998"
+												data-desc="Orbital laboratory, continuously crewed since 2000."
+												data-color="#ec4899"
+												data-date-input="1998-11-20"
+												style="left: 53%; --c: #ec4899"
+											>
+												<span class="tl-connector"></span>
+												<span class="tl-dot"></span>
+												<span class="tl-banner"
+													><strong>ISS</strong><small>Nov 20, 1998</small></span
+												>
+											</button>
+
+											<button
+												class="tl-event"
+												data-item
+												data-label="Falcon 1"
+												data-date="Sep 28, 2008"
+												data-kicker="Event · 2008"
+												data-desc="First privately built liquid-fuel rocket to reach orbit."
+												data-color="#8b5cf6"
+												data-date-input="2008-09-28"
+												style="left: 67%; --c: #8b5cf6"
+											>
+												<span class="tl-connector"></span>
+												<span class="tl-dot"></span>
+												<span class="tl-banner"
+													><strong>Falcon 1</strong><small>Sep 28, 2008</small></span
+												>
+											</button>
+
+											<button
+												class="tl-event"
+												data-item
+												data-label="Perseverance"
+												data-date="Feb 18, 2021"
+												data-kicker="Event · 2021"
+												data-desc="Rover searching for signs of ancient life in Jezero crater."
+												data-color="#ef4444"
+												data-date-input="2021-02-18"
+												style="left: 87%; --c: #ef4444"
+											>
+												<span class="tl-connector"></span>
+												<span class="tl-dot"></span>
+												<span class="tl-banner"
+													><strong>Perseverance</strong><small>Feb 18, 2021</small></span
+												>
+											</button>
+
+											<div class="tl-axis"></div>
+											<span class="tl-tick" style="left: 9%">1960</span>
+											<span class="tl-tick" style="left: 22%">1970</span>
+											<span class="tl-tick" style="left: 34%">1980</span>
+											<span class="tl-tick" style="left: 47%">1990</span>
+											<span class="tl-tick" style="left: 59%">2000</span>
+											<span class="tl-tick" style="left: 72%">2010</span>
+											<span class="tl-tick" style="left: 84%">2020</span>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="zoom-stack" role="group" aria-label="Zoom">
+								<button class="zoom-btn" aria-label="Zoom in">
+									<svg class="icon" aria-hidden="true"><use href="#i-zoom-in" /></svg>
+								</button>
+								<button class="zoom-btn" aria-label="Zoom out">
+									<svg class="icon" aria-hidden="true"><use href="#i-zoom-out" /></svg>
+								</button>
+								<button class="zoom-btn" aria-label="Reset zoom">
+									<svg class="icon" aria-hidden="true"><use href="#i-reset" /></svg>
+								</button>
+							</div>
+
+							<button class="fab" data-new aria-label="Add event">
+								<svg class="icon" aria-hidden="true"><use href="#i-plus" /></svg>
+							</button>
+						</div>
+
+						<div class="toast" data-toast role="status"></div>
+					</div>
+				</div>
+
+				<ul class="concept-notes">
+					<li>No intermediate detail popup; edit or add uses the shared sheet editor.</li>
+					<li>The canvas stays visible behind the editor for date context.</li>
+					<li>Tap selects an event; its edit form is shown in concept 03.</li>
+				</ul>
+			</section>
+			<section class="concept">
+				<div class="concept-head">
+					<span class="concept-index">02</span>
+					<div>
+						<h2>Vertical agenda</h2>
+						<p>A reading-first list. Years group the events; periods sit between them.</p>
+					</div>
+				</div>
+
+				<div class="phone">
+					<div class="screen" id="screen-agenda">
+						<div class="statusbar">
+							<span>9:41</span>
+							<span class="sb-icons">
+								<svg class="icon" aria-hidden="true"><use href="#i-signal" /></svg>
+								<svg class="icon" aria-hidden="true"><use href="#i-wifi" /></svg>
+								<svg class="icon" aria-hidden="true"><use href="#i-battery" /></svg>
+							</span>
+						</div>
+
+						<header class="mobile-head">
+							<div class="head-title">
+								<h3>History of spaceflight</h3>
+								<span class="count-pill">8 events, 3 periods</span>
+							</div>
+							<button class="icon-btn" aria-label="Timeline options">
+								<svg class="icon" aria-hidden="true"><use href="#i-more" /></svg>
+							</button>
+						</header>
+
+						<div class="view-switch" role="group" aria-label="View">
+							<button class="seg-btn" data-switch="canvas">
+								<svg class="icon" aria-hidden="true"><use href="#i-map" /></svg>
+								Canvas
+							</button>
+							<button class="seg-btn is-active" data-switch="list">
+								<svg class="icon" aria-hidden="true"><use href="#i-list" /></svg>
+								Agenda
+							</button>
+						</div>
+
+						<div class="agenda">
+							<div class="agenda-period" style="--c: #818cf8">
+								<span class="bar"></span>
+								<div>
+									<strong>Space Race</strong>
+									<small>1957 to 1975</small>
+								</div>
+							</div>
+
+							<div class="agenda-year">1957</div>
+							<button
+								class="agenda-row"
+								data-item
+								data-label="Sputnik 1"
+								data-date="Oct 4, 1957"
+								data-kicker="Event · 1957"
+								data-desc="First artificial satellite. A 58 cm sphere that opened the Space Race."
+								data-color="#94a3b8"
+							>
+								<span class="agenda-dot" style="--c: #94a3b8"></span>
+								<span class="agenda-body">
+									<strong>Sputnik 1</strong>
+									<small>Oct 4, 1957</small>
+								</span>
+								<svg class="icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+							</button>
+
+							<div class="agenda-year">1961</div>
+							<button
+								class="agenda-row"
+								data-item
+								data-label="Yuri Gagarin"
+								data-date="Apr 12, 1961"
+								data-kicker="Event · 1961"
+								data-desc="First human in space. One orbit of Earth in 108 minutes."
+								data-color="#38bdf8"
+							>
+								<span class="agenda-dot" style="--c: #38bdf8"></span>
+								<span class="agenda-body">
+									<strong>Yuri Gagarin</strong>
+									<small>Apr 12, 1961</small>
+								</span>
+								<svg class="icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+							</button>
+
+							<div class="agenda-year">1969</div>
+							<button
+								class="agenda-row"
+								data-item
+								data-label="Apollo 11"
+								data-date="Jul 20, 1969"
+								data-kicker="Event · 1969"
+								data-desc="First crewed Moon landing. Armstrong and Aldrin walk on the Sea of Tranquility."
+								data-color="#6366f1"
+							>
+								<span class="agenda-dot" style="--c: #6366f1"></span>
+								<span class="agenda-body">
+									<strong>Apollo 11</strong>
+									<small>Jul 20, 1969</small>
+								</span>
+								<svg class="icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+							</button>
+
+							<div class="agenda-year">1977</div>
+							<button
+								class="agenda-row"
+								data-item
+								data-label="Voyager 1"
+								data-date="Sep 5, 1977"
+								data-kicker="Event · 1977"
+								data-desc="Grand Tour probe, now the farthest human-made object from Earth."
+								data-color="#10b981"
+							>
+								<span class="agenda-dot" style="--c: #10b981"></span>
+								<span class="agenda-body">
+									<strong>Voyager 1</strong>
+									<small>Sep 5, 1977</small>
+								</span>
+								<svg class="icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+							</button>
+
+							<div class="agenda-period" style="--c: #34d399">
+								<span class="bar"></span>
+								<div>
+									<strong>Shuttle era</strong>
+									<small>1981 to 2011</small>
+								</div>
+							</div>
+
+							<div class="agenda-year">1990</div>
+							<button
+								class="agenda-row"
+								data-item
+								data-label="Hubble"
+								data-date="Apr 24, 1990"
+								data-kicker="Event · 1990"
+								data-desc="Space telescope that changed how we see the universe."
+								data-color="#f59e0b"
+							>
+								<span class="agenda-dot" style="--c: #f59e0b"></span>
+								<span class="agenda-body">
+									<strong>Hubble</strong>
+									<small>Apr 24, 1990</small>
+								</span>
+								<svg class="icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+							</button>
+
+							<div class="agenda-year">1998</div>
+							<button
+								class="agenda-row"
+								data-item
+								data-label="International Space Station"
+								data-date="Nov 20, 1998"
+								data-kicker="Event · 1998"
+								data-desc="Orbital laboratory, continuously crewed since 2000."
+								data-color="#ec4899"
+							>
+								<span class="agenda-dot" style="--c: #ec4899"></span>
+								<span class="agenda-body">
+									<strong>International Space Station</strong>
+									<small>Nov 20, 1998</small>
+								</span>
+								<svg class="icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+							</button>
+
+							<div class="agenda-year">2008</div>
+							<button
+								class="agenda-row"
+								data-item
+								data-label="Falcon 1"
+								data-date="Sep 28, 2008"
+								data-kicker="Event · 2008"
+								data-desc="First privately built liquid-fuel rocket to reach orbit."
+								data-color="#8b5cf6"
+							>
+								<span class="agenda-dot" style="--c: #8b5cf6"></span>
+								<span class="agenda-body">
+									<strong>Falcon 1</strong>
+									<small>Sep 28, 2008</small>
+								</span>
+								<svg class="icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+							</button>
+
+							<div class="agenda-period" style="--c: #fbbf24">
+								<span class="bar"></span>
+								<div>
+									<strong>Commercial era</strong>
+									<small>2012 to now</small>
+								</div>
+							</div>
+
+							<div class="agenda-year">2021</div>
+							<button
+								class="agenda-row"
+								data-item
+								data-label="Perseverance"
+								data-date="Feb 18, 2021"
+								data-kicker="Event · 2021"
+								data-desc="Rover searching for signs of ancient life in Jezero crater."
+								data-color="#ef4444"
+							>
+								<span class="agenda-dot" style="--c: #ef4444"></span>
+								<span class="agenda-body">
+									<strong>Perseverance</strong>
+									<small>Feb 18, 2021</small>
+								</span>
+								<svg class="icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+							</button>
+						</div>
+
+						<div class="toast" data-toast role="status"></div>
+					</div>
+				</div>
+
+				<ul class="concept-notes">
+					<li>No pinch zoom required to read; every row is a full-width tap target.</li>
+					<li>Period rows keep eras visible without hiding the events inside them.</li>
+					<li>Rows select events; their edit form is shown in the shared editor, concept 03.</li>
+				</ul>
+			</section>
+			<section class="concept">
+				<div class="concept-head">
+					<span class="concept-index">03</span>
+					<div>
+						<h2>Sheet editor</h2>
+						<p>One editor for everything. This is the event form; periods use the same sheet.</p>
+					</div>
+				</div>
+
+				<div class="phone">
+					<div class="screen editor-open" id="screen-editor">
+						<div class="statusbar">
+							<span>9:41</span>
+							<span class="sb-icons">
+								<svg class="icon" aria-hidden="true"><use href="#i-signal" /></svg>
+								<svg class="icon" aria-hidden="true"><use href="#i-wifi" /></svg>
+								<svg class="icon" aria-hidden="true"><use href="#i-battery" /></svg>
+							</span>
+						</div>
+
+						<header class="mobile-head">
+							<div class="head-title">
+								<h3>History of spaceflight</h3>
+								<span class="count-pill">8 events, 3 periods</span>
+							</div>
+							<button class="icon-btn" aria-label="Timeline options">
+								<svg class="icon" aria-hidden="true"><use href="#i-more" /></svg>
+							</button>
+						</header>
+
+						<div class="mini-tl" aria-hidden="true">
+							<span class="mini-period" style="left: 4%; width: 27%; --c: #818cf8"></span>
+							<span class="mini-period" style="left: 40%; width: 53%; --c: #34d399"></span>
+							<span class="mini-dot" style="left: 6%; --c: #94a3b8"></span>
+							<span class="mini-dot low" style="left: 13%; --c: #38bdf8"></span>
+							<span class="mini-dot" style="left: 24%; --c: #6366f1"></span>
+							<span class="mini-dot low" style="left: 37%; --c: #10b981"></span>
+							<span class="mini-dot" style="left: 56%; --c: #f59e0b"></span>
+							<span class="mini-dot low" style="left: 65%; --c: #ec4899"></span>
+							<div class="mini-axis"></div>
+							<span class="mini-tick" style="left: 8%">1960</span>
+							<span class="mini-tick" style="left: 39%">1980</span>
+							<span class="mini-tick" style="left: 68%">2000</span>
+							<span class="mini-tick" style="left: 93%">2020</span>
+						</div>
+
+						<button class="fab" data-editor-open aria-label="Edit selected event">
+							<svg class="icon" aria-hidden="true"><use href="#i-pencil" /></svg>
+						</button>
+
+						<div class="editor" data-editor>
+							<div class="editor-top">
+								<button class="grabber" data-editor-close aria-label="Close editor"></button>
+							</div>
+							<div class="editor-head">
+								<h3>Edit Event</h3>
+								<div class="editor-head-actions">
+									<button class="icon-btn danger" data-delete-editor aria-label="Delete event">
+										<svg class="icon" aria-hidden="true"><use href="#i-trash" /></svg>
+									</button>
+									<button class="icon-btn" data-editor-close aria-label="Close editor">
+										<svg class="icon" aria-hidden="true"><use href="#i-x" /></svg>
+									</button>
+								</div>
+							</div>
+
+							<div class="editor-body">
+								<label class="field">
+									<span>Date (Terran calendar)</span>
+									<input value="1969-07-20" inputmode="numeric" />
+									<small>Real date: Jul 20, 1969 · inside Space Race</small>
+								</label>
+
+								<label class="field">
+									<span>Label</span>
+									<input value="Apollo 11" />
+								</label>
+
+								<label class="field">
+									<span>Description</span>
+									<textarea rows="3">
+First crewed Moon landing. Armstrong and Aldrin walk on the Sea of Tranquility.</textarea>
+								</label>
+
+								<div class="field">
+									<span>Color</span>
+									<div class="color-control">
+										<span class="color-input" style="--c: #6366f1"></span
+										><span class="color-hex">#6366f1</span>
+									</div>
+								</div>
+							</div>
+
+							<div class="editor-foot">
+								<button class="btn" data-editor-close>Cancel</button>
+								<button class="btn btn-primary" data-save-editor>Update</button>
+							</div>
+						</div>
+
+						<div class="toast" data-toast role="status"></div>
+					</div>
+				</div>
+
+				<ul class="concept-notes">
+					<li>The app's fields stay legible at 380px; the chart stays partly visible above.</li>
+					<li>A sticky footer keeps Update in reach; Cancel and swipe down both dismiss.</li>
+					<li>Delete is separated from Update and uses a quieter danger treatment.</li>
+				</ul>
+			</section>
+			<section class="concept">
+				<div class="concept-head">
+					<span class="concept-index">04</span>
+					<div>
+						<h2>Sheet editor · period</h2>
+						<p>The same sheet, period fields. One editing pattern for both item types.</p>
+					</div>
+				</div>
+
+				<div class="phone">
+					<div class="screen editor-open" id="screen-period-editor">
+						<div class="statusbar">
+							<span>9:41</span>
+							<span class="sb-icons">
+								<svg class="icon" aria-hidden="true"><use href="#i-signal" /></svg>
+								<svg class="icon" aria-hidden="true"><use href="#i-wifi" /></svg>
+								<svg class="icon" aria-hidden="true"><use href="#i-battery" /></svg>
+							</span>
+						</div>
+
+						<header class="mobile-head">
+							<div class="head-title">
+								<h3>History of spaceflight</h3>
+								<span class="count-pill">3 periods</span>
+							</div>
+							<button class="icon-btn" aria-label="Timeline options">
+								<svg class="icon" aria-hidden="true"><use href="#i-more" /></svg>
+							</button>
+						</header>
+
+						<div class="mini-tl" aria-hidden="true">
+							<span
+								class="mini-period is-selected"
+								style="left: 4%; width: 22%; --c: #818cf8"
+							></span>
+							<span class="mini-period" style="left: 30%; width: 31%; --c: #34d399"></span>
+							<span class="mini-period" style="left: 65%; width: 28%; --c: #fbbf24"></span>
+							<span class="mini-dot" style="left: 6%; --c: #94a3b8"></span>
+							<span class="mini-dot low" style="left: 13%; --c: #38bdf8"></span>
+							<span class="mini-dot" style="left: 24%; --c: #6366f1"></span>
+							<span class="mini-dot low" style="left: 37%; --c: #10b981"></span>
+							<span class="mini-dot" style="left: 56%; --c: #f59e0b"></span>
+							<span class="mini-dot low" style="left: 65%; --c: #ec4899"></span>
+							<div class="mini-axis"></div>
+							<span class="mini-tick" style="left: 8%">1960</span>
+							<span class="mini-tick" style="left: 39%">1980</span>
+							<span class="mini-tick" style="left: 68%">2000</span>
+							<span class="mini-tick" style="left: 93%">2020</span>
+						</div>
+
+						<button class="fab" data-editor-open aria-label="Edit selected period">
+							<svg class="icon" aria-hidden="true"><use href="#i-pencil" /></svg>
+						</button>
+
+						<div class="editor" data-editor>
+							<div class="editor-top">
+								<button class="grabber" data-editor-close aria-label="Close editor"></button>
+							</div>
+							<div class="editor-head">
+								<h3>Edit Period</h3>
+								<div class="editor-head-actions">
+									<button
+										class="icon-btn danger"
+										data-delete-period-editor
+										aria-label="Delete period"
+									>
+										<svg class="icon" aria-hidden="true"><use href="#i-trash" /></svg>
+									</button>
+									<button class="icon-btn" data-editor-close aria-label="Close editor">
+										<svg class="icon" aria-hidden="true"><use href="#i-x" /></svg>
+									</button>
+								</div>
+							</div>
+
+							<div class="editor-body">
+								<label class="field">
+									<span>Start Date (Terran calendar)</span>
+									<input value="1957" inputmode="numeric" />
+									<small>Real date: Jan 1, 1957</small>
+								</label>
+
+								<label class="field">
+									<span>End Date (Terran calendar)</span>
+									<input value="1975" inputmode="numeric" />
+									<small>Real date: Dec 31, 1975</small>
+								</label>
+
+								<label class="field">
+									<span>Label</span>
+									<input value="Space Race" />
+								</label>
+
+								<div class="field">
+									<span>Color</span>
+									<div class="color-control">
+										<span class="color-input" style="--c: #818cf8"></span>
+										<span class="color-hex">#818cf8</span>
+									</div>
+								</div>
+							</div>
+
+							<div class="editor-foot">
+								<button class="btn" data-editor-close>Cancel</button>
+								<button class="btn btn-primary" data-save-period-editor>Update</button>
+							</div>
+						</div>
+
+						<div class="toast" data-toast role="status"></div>
+					</div>
+				</div>
+
+				<ul class="concept-notes">
+					<li>Same sheet and footer as the event editor; only the fields change.</li>
+					<li>Dates stay as text inputs, so any calendar precision keeps working.</li>
+					<li>Delete sits in the header, away from Update.</li>
+				</ul>
+			</section>
+		</main>
+
+		<p class="footnote">
+			One sheet editor serves both views and both item types. Sheets should become native dialogs so
+			focus handling and Escape behaviour come for free. All screens shown at 380 × 800.
+		</p>
+
+		<script>
+			const themeToggle = document.querySelector('[data-theme-toggle]');
+
+			themeToggle?.addEventListener('click', () => {
+				const dark = document.body.classList.toggle('dark');
+				themeToggle.textContent = dark ? 'Light mode' : 'Dark mode';
+			});
+
+			const toastTimers = new WeakMap();
+
+			function showToast(screen, message) {
+				const toast = screen?.querySelector('[data-toast]');
+				if (!toast) return;
+				toast.textContent = message;
+				toast.classList.add('show');
+				clearTimeout(toastTimers.get(toast));
+				toastTimers.set(
+					toast,
+					setTimeout(() => toast.classList.remove('show'), 1800)
+				);
+			}
+
+			document.addEventListener('click', (event) => {
+				const button = event.target.closest('button');
+				if (!button) return;
+				const screen = button.closest('.screen');
+				if (!screen) return;
+
+				if (button.matches('[data-item]')) {
+					const scope = button.closest('.agenda, .tl-canvas') || screen;
+					scope.querySelectorAll('[data-item]').forEach((node) => {
+						node.classList.toggle('is-selected', node === button);
+					});
+					return;
+				}
+
+				if (button.matches('[data-editor-open]')) {
+					screen.classList.add('editor-open');
+					return;
+				}
+
+				if (button.matches('[data-editor-close]')) {
+					screen.classList.remove('editor-open');
+					return;
+				}
+
+				if (button.matches('[data-save-editor]')) {
+					screen.classList.remove('editor-open');
+					showToast(screen, 'Event saved');
+					return;
+				}
+
+				if (button.matches('[data-delete-editor]')) {
+					screen.classList.remove('editor-open');
+					showToast(screen, 'Event deleted');
+					return;
+				}
+
+				if (button.matches('[data-save-period-editor]')) {
+					screen.classList.remove('editor-open');
+					showToast(screen, 'Period saved');
+					return;
+				}
+
+				if (button.matches('[data-delete-period-editor]')) {
+					screen.classList.remove('editor-open');
+					showToast(screen, 'Period deleted');
+					return;
+				}
+
+				if (button.matches('[data-switch]')) {
+					showToast(
+						screen,
+						button.dataset.switch === 'canvas' ? 'Canvas view is concept 01' : 'Agenda view'
+					);
+					return;
+				}
+			});
+		</script>
+	</body>
+</html>
