@@ -260,7 +260,7 @@
 						</button>
 					</div>
 
-					<div class="flex flex-col gap-0.5 pb-10">
+					<div class="flex flex-col gap-0.5 pb-12">
 						{#if data.periods.length === 0}
 							<p class="py-3 text-center text-[11px] text-zinc-400 dark:text-zinc-500">
 								No periods yet
